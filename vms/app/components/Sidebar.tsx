@@ -2,18 +2,22 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+
+/* importing SVG icons*/
+import {
+  DashboardIcon, 
+  VolunteersIcon,
+  MatchingIcon, 
+  ReportingIcon, 
+  CalendarIcon,
+  UsersIcon,
+  MessageIcon,
+  LogoutIcon
+} from '@/icons';
+
 import {
   ChevronsLeft,
-  ChevronsRight,
-  LayoutDashboard,
-  Users,
-  UserPlus,
-  UserRoundCog,
-  ChartColumnIncreasing,
-  BookUser,
-  List,
-  Calendar,
-  LogOut,
+  ChevronsRight
 } from 'lucide-react';
 
 interface SidebarElementProperties {
@@ -45,10 +49,10 @@ const SidebarElements = ({ label, icon, active, onClick, collapsed }: SidebarEle
   return (
     <button 
       onClick={onClick} 
-      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors cursor-pointer ${
+      className={`sidebar-elements ${
         active 
-          ? 'bg-[#9f0059] text-white' 
-          : 'text-[#9f0059] hover:bg-[#9f0059] hover:text-white'
+          ? 'sidebar-element-active' 
+          : 'sidebar-element-hover'
         }`
       }
     >
@@ -62,11 +66,10 @@ const LogoutElement = ({ label, icon, active, onClick, collapsed }: SidebarEleme
   return(
     <button
       onClick={onClick}
-      className={`w-full flex items-center justify-center gap-1.5 px-4 bg-[#f6f0eb] text-[#9f0059] py-3 rounded-4xl 
-        font-medium cursor-pointer border border-[#9f0059] ${
+      className={`sidebar-logout ${
         active
-          ? 'bg-[#9f0059] text-white'
-          : 'text-[#9f0059] hover:bg-[#9f0059] hover:text-white'
+          ? 'sidebar-element-active'
+          : 'sidebar-element-hover'
       }`
     }
     >
@@ -79,7 +82,7 @@ const LogoutElement = ({ label, icon, active, onClick, collapsed }: SidebarEleme
 const SectionHeader = ({title, collapsed}: {title: string; collapsed: boolean }) => {
   if (collapsed) return null;
   return (
-    <h3 className="mb-2 px-2 text-base font-bold text-gray-700 tracking-wide">
+    <h3 className="sidebar-element-headers">
       {title}
     </h3>
   );
@@ -94,36 +97,35 @@ export default function Sidebar() {
     {
       title: 'Menu',
       items: [
-        { label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard' }
+        { label: 'Dashboard', icon: <DashboardIcon width={20} height={20} />, path: '/dashboard' }
       ],
     },
     {
       title: 'Volunteers',
       items: [
-        { label: 'Overview', icon: <List size={18} />, path: '/volunteers/overview' },
-        { label: 'Matching', icon: <Users size={18} />, path: '/volunteers/matching' },
-        { label: 'Add New Volunteer', icon: <UserPlus size={18} />, path: '/volunteers/add' },
-        { label: 'Edit Volunteer', icon: <UserRoundCog size={18} />, path: '/volunteers/edit' },
-        { label: 'Reporting', icon: <ChartColumnIncreasing size={18} />, path: '/volunteers/reporting' },
+        { label: 'Overview', icon: <VolunteersIcon width={20} height={20} />, path: '/volunteers/overview' },
+        { label: 'Matching', icon: <MatchingIcon width={20} height={20} />, path: '/volunteers/matching' },
+        { label: 'Reporting', icon: <ReportingIcon width={20} height={20} />, path: '/volunteers/reporting' }
       ],
     },
     {
       title: 'Schedules',
       items: [
-        { label: 'Calendar', icon: <Calendar size={18} />, path: '/calendar' }
+        { label: 'Calendar', icon: <CalendarIcon width={20} height={20} />, path: '/calendar' }
       ],
     },
     {
       title: 'Settings',
       items: [
-        { label: 'Users', icon: <BookUser size={18} />, path: '/users' }
+        { label: 'Users', icon: <UsersIcon width={20} height={20} />, path: '/settings/users' },
+        { label: 'Message Templates', icon: <MessageIcon width={20} height={20} />, path: '/settings/messages' }
       ],
     },
   ];
 
   return (
     <aside
-      className={`h-screen flex flex-col bg-[#f6f0eb] border-r transition-[width] duration-300 relative ${
+      className={`sidebar-background ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
@@ -138,14 +140,14 @@ export default function Sidebar() {
             className="rounded-lg shrink-0"
           />
           {!collapsed && (
-            <span className="text-lg font-bold text-[#9f0059] truncate">
+            <span className="sidebar-acara">
               Acara Hospice
             </span>
           )}
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className= "absolute -right-3 bg-[#9f0059] rounded-full p-1.5 transition-colors cursor-pointer z-10"
+          className= "sidebar-minimize-btn"
         >
           {collapsed ? <ChevronsRight color="white" size={11} /> : <ChevronsLeft color="white" size={16} />}
         </button>
@@ -176,7 +178,7 @@ export default function Sidebar() {
       <div className="p-3">
         <LogoutElement
           label="Logout"
-          icon={<LogOut size={20} />}
+          icon={<LogoutIcon width={20} height={20}  />}
           active={pathname === '/login'}
           onClick={() => router.push('/login')}
           collapsed={collapsed}

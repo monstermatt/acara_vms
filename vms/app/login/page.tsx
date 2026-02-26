@@ -54,7 +54,7 @@ export default function LoginPage() {
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="text-gray-500 w-full px-4 py-3 rounded-3xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9f0059] focus:border-transparent"
+                    className="login-fields"
                     required
                   />
                 </div>
@@ -65,7 +65,7 @@ export default function LoginPage() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="text-gray-500 w-full px-4 py-3 rounded-3xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9f0059] focus:border-transparent"
+                    className="login-fields"
                     required
                   />
                 </div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(true)}
-                    className="text-sm text-[#9f0059] hover:underline cursor-pointer"
+                    className="login-action-link"
                   >
                     Forgot password?
                   </button>
@@ -83,7 +83,7 @@ export default function LoginPage() {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full bg-[#9f0059] text-white py-3 rounded-3xl font-medium hover:opacity-90 transition-opacity cursor-pointer"
+                    className="login-action-btn"
                   >
                     Login
                   </button>
@@ -108,7 +108,7 @@ export default function LoginPage() {
                     placeholder="Email"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
-                    className="text-gray-500 w-full px-4 py-3 rounded-3xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9f0059] focus:border-transparent"
+                    className="login-fields"
                     required
                   />
                 </div>
@@ -116,7 +116,7 @@ export default function LoginPage() {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full bg-[#9f0059] text-white py-3 rounded-3xl font-medium hover:opacity-90 transition-opacity cursor-pointer"
+                    className="login-action-btn"
                   >
                     Reset Password
                   </button>
@@ -126,7 +126,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(false)}
-                    className="text-sm text-[#9f0059] hover:underline cursor-pointer"
+                    className="login-action-link"
                   >
                     Back to login
                   </button>

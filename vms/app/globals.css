@@ -24,3 +24,52 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer components {
+  /* Sidebar Styles */
+  .sidebar-elements {
+    @apply w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors cursor-pointer;
+  }
+
+  .sidebar-logout {
+    @apply w-full flex items-center justify-center gap-1.5 px-4 bg-[#f6f0eb] text-[#9f0059] py-3 rounded-4xl 
+        font-medium cursor-pointer border border-[#9f0059];
+  }
+
+  .sidebar-element-active {
+    @apply bg-[#9f0059] text-white;
+  }
+
+  .sidebar-element-hover {
+    @apply text-[#9f0059] hover:bg-[#9f0059] hover:text-white;
+  }
+
+  .sidebar-element-headers {
+    @apply mb-2 px-2 text-base font-bold text-gray-700 tracking-wide;
+  }
+
+  .sidebar-background {
+    @apply h-screen flex flex-col bg-[#f6f0eb] border-r transition-[width] duration-300 relative;
+  }
+
+  .sidebar-acara {
+    @apply text-lg font-bold text-[#9f0059] truncate;
+  }
+
+  .sidebar-minimize-btn {
+    @apply absolute -right-3 bg-[#9f0059] rounded-full p-1.5 transition-colors cursor-pointer z-10;
+  }
+
+  /* Login page Styles */
+  .login-action-btn {
+    @apply w-full bg-[#9f0059] text-white py-3 rounded-3xl font-medium hover:opacity-90 transition-opacity cursor-pointer;
+  }
+
+  .login-fields {
+    @apply text-gray-500 w-full px-4 py-3 rounded-3xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9f0059] focus:border-transparent;
+  }
+
+  .login-action-link {
+    @apply text-sm text-[#9f0059] hover:underline cursor-pointer;
+  }
+}
