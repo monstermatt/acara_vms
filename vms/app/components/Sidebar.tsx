@@ -5,10 +5,10 @@ import { useRouter, usePathname } from 'next/navigation';
 
 /* importing SVG icons*/
 import {
-  DashboardIcon, 
+  DashboardIcon,
   VolunteersIcon,
-  MatchingIcon, 
-  ReportingIcon, 
+  MatchingIcon,
+  ReportingIcon,
   CalendarIcon,
   UsersIcon,
   MessageIcon,
@@ -43,17 +43,17 @@ interface LogoutElement {
 interface SidebarSections {
   title: string;
   items: SidebarElements[];
+
 }
 
 const SidebarElements = ({ label, icon, active, onClick, collapsed }: SidebarElementProperties) => {
   return (
-    <button 
-      onClick={onClick} 
-      className={`sidebar-elements ${
-        active 
-          ? 'sidebar-element-active' 
+    <button
+      onClick={onClick}
+      className={`sidebar-elements ${active
+          ? 'sidebar-element-active'
           : 'sidebar-element-hover'
-        }`
+        } ${collapsed ? 'border border-[#9f0059] rounded-2xl py-3' : 'border-transparent'}`
       }
     >
       {icon && <span className="shrink-0">{icon}</span>}
@@ -63,15 +63,14 @@ const SidebarElements = ({ label, icon, active, onClick, collapsed }: SidebarEle
 };
 
 const LogoutElement = ({ label, icon, active, onClick, collapsed }: SidebarElementProperties) => {
-  return(
+  return (
     <button
       onClick={onClick}
-      className={`sidebar-logout ${
-        active
+      className={`sidebar-logout ${active
           ? 'sidebar-element-active'
           : 'sidebar-element-hover'
-      }`
-    }
+        } ${collapsed ? 'rounded-2xl' : 'rounded-4xl'}`
+      }
     >
       {icon && <span className='shrink-0'>{icon}</span>}
       {!collapsed && <span className="text-sm font-medium truancate">{label}</span>}
@@ -79,8 +78,17 @@ const LogoutElement = ({ label, icon, active, onClick, collapsed }: SidebarEleme
   );
 };
 
-const SectionHeader = ({title, collapsed}: {title: string; collapsed: boolean }) => {
-  if (collapsed) return null;
+const SectionHeader = ({ title, collapsed, isFirst }: { title: string; collapsed: boolean; isFirst: boolean }) => {
+  if (collapsed) {
+    if (isFirst) return null;
+
+    return (
+      <div className='flex items-center justify-center my-6'>
+        <div className='w-6 border-t border-gray-400' />
+      </div>
+    );
+  }
+
   return (
     <h3 className="sidebar-element-headers">
       {title}
@@ -125,19 +133,17 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`sidebar-background ${
-        collapsed ? 'w-20' : 'w-64'
-      }`}
+      className={`sidebar-background ${collapsed ? 'w-20' : 'w-64'
+        }`}
     >
       {/* Top-sidebar - Acara logo and name */}
       <div className="flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-3 min-w-0">
           <Image
-            src="/acara-logo.jpg"
+            src="/acara-logo.png"
             alt="Acara logo"
             width={65}
             height={65}
-            className="rounded-lg shrink-0"
           />
           {!collapsed && (
             <span className="sidebar-acara">
@@ -147,7 +153,7 @@ export default function Sidebar() {
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className= "sidebar-minimize-btn"
+          className="sidebar-minimize-btn"
         >
           {collapsed ? <ChevronsRight color="white" size={11} /> : <ChevronsLeft color="white" size={16} />}
         </button>
@@ -155,9 +161,9 @@ export default function Sidebar() {
 
       {/* Mid-sidebar - sections and page links */}
       <nav className="flex-1 px-3 py-6 space-y-8 overflow-y-auto">
-        {sidebarSections.map((section) => (
+        {sidebarSections.map((section, index) => (
           <div key={section.title}>
-            <SectionHeader title={section.title} collapsed={collapsed} />
+            <SectionHeader title={section.title} collapsed={collapsed} isFirst={index === 0} />
             <div className="space-y-1">
               {section.items.map((item) => (
                 <SidebarElements
@@ -178,7 +184,7 @@ export default function Sidebar() {
       <div className="p-3">
         <LogoutElement
           label="Logout"
-          icon={<LogoutIcon width={20} height={20}  />}
+          icon={<LogoutIcon width={20} height={20} />}
           active={pathname === '/login'}
           onClick={() => router.push('/login')}
           collapsed={collapsed}

@@ -1,16 +1,16 @@
 'use client';
 import Image from 'next/image';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Login from './components/Login'
+import ForgotPassword from './components/ForgotPassword'
+import AccountSetup from './components/AccountSetup'
+
+type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [ email,setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail,setResetEmail] = useState('');
+  const [view, setView] = useState<LoginView>('login')
 
-  return(
+  return (
     <div className="flex h-screen">
 
       {/* Left half page image */}
@@ -24,118 +24,37 @@ export default function LoginPage() {
         />
       </div>
 
-      {/* Acara logo */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 bg-white">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-8 bg-white">
+        <div className="w-full max-w-md pb-50">
+
+          {/* Acara logo */}
           <div className="flex justify-center mb-8">
             <Image
-              src="/acara-logo.jpg"
+              src="/acara-logo.png"
               alt="Logo placeholder"
-              width={80}
-              height={80}
+              width={123}
+              height={109}
               className="rounded-lg"
             />
           </div>
 
-          {/* Main login view */}
-          {!showForgotPassword ? (
-            <>
-              <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">
-                Welcome Back!
-              </h1>
-              <p className="text-sm text-gray-600 text-center mb-8">
-                Please enter your credentials to access the system
-              </p>
+          {/* Implementing views below logo */}
+          {view === 'login' && <Login setView={setView} />}
+          {view === 'forgotpassword' && <ForgotPassword setView={setView} />}
+          {view === 'accountsetup' && <AccountSetup setView={setView} />}
 
-              <form onSubmit={(e) => { e.preventDefault(); router.push('/dashboard'); }} className="space-y-4">
-                <div>
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="login-fields"
-                    required
-                  />
-                </div>
+        </div>
+        <div className="fixed bottom-3 -translate-x-0.5 w-full text-center py-4">
+          <p className="text-sm text-gray-600">
 
-                <div>
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="login-fields"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="login-action-link"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="login-action-btn"
-                  >
-                    Login
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : (
-            <>
-
-            {/* Reset password view */}
-              <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">
-                Reset your password
-              </h1>
-              <p className="text-sm text-gray-600 text-center mb-8">
-                Please enter your email to reset your password
-              </p>
-
-              <form onSubmit={(e) => { e.preventDefault(); setShowForgotPassword(false); }} className="space-y-4">
-                <div>
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    className="login-fields"
-                    required
-                  />
-                </div>
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="login-action-btn"
-                  >
-                    Reset Password
-                  </button>
-                </div>
-
-                <div className="flex justify-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(false)}
-                    className="login-action-link"
-                  >
-                    Back to login
-                  </button>
-                </div>
-              </form>
-            </>
-          )}
+            {/* Linked to account setup view for testing/dev purposes */}
+            Don't have an account? <button onClick={() => setView('accountsetup')}
+              className="login-action-link">
+              Contact Us
+            </button>
+          </p>
         </div>
       </div>
     </div>
-  );
+  )
 }
