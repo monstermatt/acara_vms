@@ -26,6 +26,8 @@ psql postgres -c "CREATE USER vmsadmin WITH PASSWORD '$psqlpwd';"
 
 Give the user access
 GRANT ALL PRIVILEGES ON DATABASE vms TO vmsadmin;
+GRANT ALL ON SCHEMA public TO vmsadmin;
+ALTER DATABASE vms OWNER TO vmsadmin;
 
 Connect as new user
 psql -U vmsadmin -d vms
