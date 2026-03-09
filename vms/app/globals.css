@@ -80,4 +80,22 @@ body {
   .invalid-creds-message {
     @apply text-red-500 text-xs text-center;
   }
+
+  /* Volunteer Matching Styles */
+  .input-style {
+    @apply border p-2 mr-2 rounded-full border border-gray-300 text-gray-700;
+  }
+
+  .input-section {
+    @apply p-6 rounded-xl mb-4 text-gray-500
+  }
+
+  /*general styles*/
+  .page-header {
+    @apply text-2xl font-bold text-[#9f0059] mb-4;
+  }
+
+  .reset-button {
+    @apply bg-[#9F0059] p-2 m-1 rounded-full border text-white mb-4;
+  }
 }

@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation';
 import { Quicksand } from 'next/font/google';
 import Sidebar from '@/app/components/Sidebar';
 import './globals.css';
+import Topbar from './components/topbar';
 
 const quicksand = Quicksand({subsets: ['latin']});
 
@@ -22,9 +23,12 @@ export default function RootLayout({
         ) : (
           <div className="flex">
             <Sidebar />
-            <main className="flex-1 bg-white">
+            <div className ="flex-1 flex-col">
+              <Topbar />
+              <main className="flex-1 bg-white">
               {children}
-            </main>
+              </main>
+            </div>
           </div>
         )}
       </body>
