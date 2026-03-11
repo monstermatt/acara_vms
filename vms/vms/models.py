@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser # To extend the default User
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+# TODO : Add constraints across all tables as needed
+
 # User model extending AbstractUser
 class User(AbstractUser):
     # Default fields for reference:
@@ -47,6 +49,7 @@ class Volunteer(models.Model):
     last_monthly_training_attended = models.DateField(blank=True, null=True)
     performance_eval_date = models.DateField(blank=True, null=True)
     team=models.CharField(max_length=1, blank=True)  # Team the volunteer belongs to
+    employed = models.BooleanField
 
     class Gender(models.TextChoices):
         MALE = "M", _("Male")
@@ -59,7 +62,35 @@ class Volunteer(models.Model):
     )
 
     def __str__(self):
-        return self.username  # Display the username
+        return self.user  # Display the username
+
+
+
+# Skills model to represent the types of skills
+class Language(models.Model):
+    language_id = models.AutoField(primary_key=True)
+    
+    class LanguageType(models.TextChoices):
+        MALE = "NATIVE", _("Native")
+        FEMALE = "SPOKEN", _("Spoken")
+        
+    language_type = models.CharField(
+        max_length=6,
+        choices=LanguageType.choices
+    )
+
+    language_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.language_name  # Display the skill name
+    
+# LanguageVolunteer model to represent the skills of volunteers
+class VolunteerLanguage(models.Model):
+    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='languages')
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.volunteer.user} - {self.language.language_name}"  # Display the volunteer's username and language name
 
 # Skills model to represent the types of skills
 class Skill(models.Model):
@@ -75,8 +106,25 @@ class VolunteerSkill(models.Model):
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.volunteer.username} - {self.skill.skill_name}"  # Display the volunteer's username and skill name
+        return f"{self.volunteer.user} - {self.skill.skill_name}"  # Display the volunteer's username and skill name
     
+
+# Recognition model to represent the types of skills
+class Recognotion(models.Model):
+    recognition_id = models.AutoField(primary_key=True)
+    recognition_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.recognition_name  # Display the skill name
+    
+# Skils model to represent the skills of volunteers
+class VolunteerRecognition(models.Model):
+    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='recognitions')
+    recognition = models.ForeignKey(Skill, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.volunteer.user} - {self.recognition}"  # Display the volunteer's username and skill name
+
 # Possible preferences of volunteering duties
 class DutyPreference(models.Model):
     pref_id = models.AutoField(primary_key=True)
@@ -91,7 +139,7 @@ class VolunteerDutyPreference(models.Model):
     duty_preference = models.ForeignKey(DutyPreference, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.volunteer.username} - {self.duty_preference.duty_name}"  # Display the volunteer's username and duty preference name
+        return f"{self.volunteer.user} - {self.duty_preference.duty_name}"  # Display the volunteer's username and duty preference name
     
 # Model to represent volunteer availability
 class VolunteerAvailability(models.Model):
@@ -112,7 +160,7 @@ class VolunteerAvailability(models.Model):
     end_time = models.TimeField()
 
     def __str__(self):
-        return f"{self.volunteer.username} - {self.dayofweek} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and availability details
+        return f"{self.volunteer.user} - {self.dayofweek} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and availability details
     
 # Model to represent volunteer's planned absences
 class VolunteerAbsence(models.Model):
@@ -123,7 +171,7 @@ class VolunteerAbsence(models.Model):
     end_time = models.TimeField()
 
     def __str__(self):
-        return f"{self.volunteer.username} - Absence from {self.start_date} to {self.end_date} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and absence details
+        return f"{self.volunteer.user} - Absence from {self.start_date} to {self.end_date} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and absence details
     
 # Model to represent volunteer schedule
 class VolunteerSchedule(models.Model):
@@ -146,4 +194,4 @@ class VolunteerSchedule(models.Model):
     end_time = models.TimeField()
 
     def __str__(self):
-        return f"{self.volunteer.username} - {self.dayofweek} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and schedule details
+        return f"{self.volunteer.user} - {self.dayofweek} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and schedule details
