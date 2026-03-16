@@ -1,3 +1,4 @@
+import { BellIcon } from "@/icons"
 import Image from "next/image";
 
 export default function Topbar() {
@@ -6,7 +7,7 @@ export default function Topbar() {
             <div className = "flex items-center gap-6">
 
                 <button className = "relative p-2 text-gray-500 hover:bg-gray-50 rounded-full transition-colors border border-gray-200">
-                    notifications
+                    {<BellIcon />}
                 </button>
 
                 <div className = "h-8 w-[1px] bg-gray-200"></div>

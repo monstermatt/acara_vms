@@ -12,4 +12,5 @@ export { default as MessageIcon } from './fi-rr-paper-plane.svg'
 export { default as LogoutIcon } from './fi-rr-sign-in.svg'
 export { default as HidePasswordIcon } from './fi-rr-eye-crossed.svg'
 export { default as UnhidePasswordIcon } from './fi-rr-eye-uncrossed.svg'
-
+export { default as BellIcon } from './fi-rr-bell.svg'
+export { default as FilterIcon } from './fi-rr-filter.svg'

@@ -90,12 +90,32 @@ body {
     @apply p-6 rounded-xl mb-4 text-gray-500
   }
 
+  /*reporting styles*/
+  .reporting-top-button {
+    @apply bg-gradient-to-b from-[#CD5000] to-[#9F0059] text-white rounded-3xl w-1/3 font-bold p-4 m-4 min-h-32;
+  }
   /*general styles*/
   .page-header {
     @apply text-2xl font-bold text-[#9f0059] mb-4;
   }
 
-  .reset-button {
+  .active-button {
     @apply bg-[#9F0059] p-2 m-1 rounded-full border text-white mb-4;
+  }
+
+  .inactive-button {
+    @apply bg-[#DEDEDE] p-2 m-1 rounded-full border text-white mb-4;
+  }
+
+  .main-container {
+    @apply min-h-screen;
+  }
+
+  .table-container {
+    @apply rounded-xl border border-[#DEDEDE] bg-white;
+  }
+
+  .thead {
+    @apply text-[#cd5000] font-bold ;
   }
 }
