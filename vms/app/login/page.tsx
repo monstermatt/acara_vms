@@ -5,12 +5,14 @@ import Login from './components/Login'
 import ForgotPassword from './components/ForgotPassword'
 import AccountSetup from './components/AccountSetup'
 
+
 type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
 export default function LoginPage() {
   const [view, setView] = useState<LoginView>('login')
 
   return (
+
     <div className="flex h-screen">
 
       {/* Left half page image */}
@@ -56,5 +58,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+ 
   )
 }

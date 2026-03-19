@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Volunteer, User
+from rest_framework_simplejwt.serializers import TokeObtainPairSerializer
 
 # Serializer for the User model
 class UserSerializer(serializers.ModelSerializer):
@@ -16,3 +17,12 @@ class VolunteerSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'phone_number', 'address', 'age_group', 'max_distance_preferred', 
                   'sub_duty_preference', 'last_monthly_training_attended', 'performance_eval_date', 'team'] 
 
+#Serializer for role based auth
+class MyTokenObtainPairSerializer(TokeObtainPairSerializer):
+    username_field = 'email'
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['role'] = user.role
+        token['username'] = user.username
+        return token

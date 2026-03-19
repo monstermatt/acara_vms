@@ -44,7 +44,26 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "vms",
+    "corsheaders",
 ]
+
+#set django auth to use vms to preven default conflicts (I may have screwed this up, but it was the only way I could get it to work)
+AUTH_USER_MODEL = 'vms.User'
+
+#djangorestframework-simplejwt
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+#specify front-end origns
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+     "http://127.0.0.1:3000" # Replace in production
+]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -54,6 +73,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "vmsproject.urls"

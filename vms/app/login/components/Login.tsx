@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UnhidePasswordIcon, HidePasswordIcon } from '@/icons';
+import { signIn } from 'next-auth/react';
 
 type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
@@ -20,9 +21,27 @@ const Login = ({ setView }: Props) => {
   const [invalidEmail, setInvalidEmail] = useState(false)
   const [invalidPassword, setInvalidPassword] = useState(false)
   const [invalidCredentials, setInvalidCredentials] = useState(false)
+  const [isPending, setIsPending] = useState(false)
 
-  const submitCredentials = (e: React.SyntheticEvent) => {
+  const submitCredentials = async (e: React.SyntheticEvent) => {
     e.preventDefault()
+    setIsPending(true)
+    setInvalidCredentials(false)
+
+    //NextAuth SignIn
+    const result = await signIn('credentials', {
+      redirect: false,
+      email: email,
+      password: password,
+    })
+
+    setIsPending(false)
+
+    if (result?.error) {
+      setInvalidCredentials(true);
+    }else {
+      router.push('/dashboard')
+    }
 
     // resetting errors
     setInvalidEmail(false)
@@ -133,8 +152,9 @@ const Login = ({ setView }: Props) => {
           <button
             type="submit"
             className="login-action-btn"
+            disabled={isPending}
           >
-            Login
+            {isPending ? 'Authenticating...' : 'Login'}
           </button>
         </div>
       </form>

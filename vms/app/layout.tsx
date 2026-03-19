@@ -4,6 +4,7 @@ import { Quicksand } from 'next/font/google';
 import Sidebar from '@/app/components/Sidebar';
 import './globals.css';
 import Topbar from './components/topbar';
+import { SessionProvider } from "next-auth/react"
 
 const quicksand = Quicksand({subsets: ['latin']});
 
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={quicksand.className}>
+        <SessionProvider>
         {isLoginPage ? (
           children
         ) : (
@@ -31,6 +33,7 @@ export default function RootLayout({
             </div>
           </div>
         )}
+        </SessionProvider>
       </body>
     </html>
   );

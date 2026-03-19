@@ -21,6 +21,11 @@ class User(AbstractUser):
     # groups (inherited from AbstractUser)
     # user_permissions (inherited from AbstractUser)
 
+    #modifying abstractuser to expect email rather than username
+    email = models.EmailField(_("email address"), unique=True)
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['username']
+
     class Role(models.TextChoices):
         VOLUNTEER = "VOLUN", _("Volunteer")
         ADMIN = "ADMIN", _("Admin")
