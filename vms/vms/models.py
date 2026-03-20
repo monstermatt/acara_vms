@@ -200,3 +200,24 @@ class VolunteerSchedule(models.Model):
 
     def __str__(self):
         return f"{self.volunteer.user} - {self.dayofweek} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and schedule details
+
+# Model to represent a specific visit
+# TODO write a transaction that creates or removes a visit based on schedule and absence
+class Visit(models.Model):
+    visit_id = models.AutoField(primary_key=True)
+    visit_date = models.DateField()
+    visit_start_time = models.TimeField()
+    visit_end_time = models.TimeField()
+    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='visits')
+    charted = models.BooleanField(default=False) # Remains false till user updates that they finished charting
+    visited = models.BooleanField(default=False) # Remains false till user updates that they did visit the patient
+    
+# Notification template model to represent the types of skills
+class Template(models.Model):
+    template_id = models.AutoField(primary_key=True)
+    template_type = models.CharField(max_length=75)
+    template_content = models.TextField()
+
+    def __str__(self):
+        return self.template_type # Display the template type
+    
