@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework_simplejwt.view import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import MyTokenObtainPairSerializer
 
 # Create your views here.
