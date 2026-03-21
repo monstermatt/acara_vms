@@ -49,7 +49,7 @@ class Volunteer(models.Model):
     phone_number = models.CharField(max_length=15, blank=False)
     address = models.TextField(blank=False)
 
-    class AgeGroup(model.TextChoices):
+    class AgeGroup(models.TextChoices):
         AGEGROUP1 = "AGEGROUO1", _("18-25")
         AGEGROUP2 = "AGEGROUP2", _("26-50")
         AGEGROUP3 = "AGEGROUP3", _("51 and above")
