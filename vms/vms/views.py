@@ -31,7 +31,8 @@ def remove_volunteer(request):
 def view_volunteer(request):
     ...
 
-# View volunteer's schedule for current date
-def view_volunteer_apt_today(request):
+# View volunteer's schedule for given date
+# Note to UI developers: please pass current date when looking for today's apts
+def view_volunteer_apt_by_date(request):
     ...
 
