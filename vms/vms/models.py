@@ -55,6 +55,19 @@ class Volunteer(models.Model):
     performance_eval_date = models.DateField(blank=True, null=True)
     team=models.CharField(max_length=1, blank=True)  # Team the volunteer belongs to
     employed = models.BooleanField
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Status(model.TextChoices):
+        ACTIVE = "ACTIVE", _("Active")
+        INACTIVE = "INACTIVE", _("Inactive")
+        PENDING = "PENDING", _("Pending")
+    
+    status = models.CharField(
+        max_length=8,
+        choices = Status.choices
+
+    )
 
     class Gender(models.TextChoices):
         MALE = "M", _("Male")
