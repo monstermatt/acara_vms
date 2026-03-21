@@ -48,7 +48,17 @@ class Volunteer(models.Model):
     # Additional fields for volunteers
     phone_number = models.CharField(max_length=15, blank=False)
     address = models.TextField(blank=False)
-    age_group = models.CharField(max_length=20, blank=True)
+
+    class AgeGroup(model.TextChoices):
+        AGEGROUP1 = "AGEGROUO1", _("18-25")
+        AGEGROUP2 = "AGEGROUP2", _("26-50")
+        AGEGROUP3 = "AGEGROUP3", _("51 and above")
+    
+    age_group = models.CharField(
+        max_length=8,
+        choices = AgeGroup.choices
+
+    )
     max_distance_preferred = models.PositiveIntegerField(blank=True, null=True)  # Distance in miles
     sub_duty_preference = models.BooleanField(default=False)  # True if the volunteer prefers sub-duty, False otherwise
     last_monthly_training_attended = models.DateField(blank=True, null=True)
@@ -87,7 +97,15 @@ class Volunteer(models.Model):
 # Skills model to represent the types of skills
 class Language(models.Model):
     language_id = models.AutoField(primary_key=True)
+    language_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.language_name  # Display the skill name
     
+# LanguageVolunteer model to represent the languages of volunteers
+class VolunteerLanguage(models.Model):
+    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='languages')
+    language = models.ForeignKey(Language, on_delete=models.CASCADE)
     class LanguageType(models.TextChoices):
         MALE = "NATIVE", _("Native")
         FEMALE = "SPOKEN", _("Spoken")
@@ -96,16 +114,6 @@ class Language(models.Model):
         max_length=6,
         choices=LanguageType.choices
     )
-
-    language_name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.language_name  # Display the skill name
-    
-# LanguageVolunteer model to represent the skills of volunteers
-class VolunteerLanguage(models.Model):
-    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='languages')
-    language = models.ForeignKey(Language, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.volunteer.user} - {self.language.language_name}"  # Display the volunteer's username and language name
