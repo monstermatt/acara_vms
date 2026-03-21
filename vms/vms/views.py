@@ -14,3 +14,24 @@ def login_view(request):
 def logout_view(request):
     ...
 
+# Add a volunteer to the system
+def add_volunteer(request):
+    ...
+
+# Update one or more characteristics of a volunteer
+def update_volunteer(request):
+    ...
+
+# Mark volunteer as inactive in the database
+# Note for other APIs: Filter out inactive volunteers (consider them deleted)
+def remove_volunteer(request):
+    ...
+
+# View details of a selected volunteer
+def view_volunteer(request):
+    ...
+
+# View volunteer's schedule for current date
+def view_volunteer_apt_today(request):
+    ...
+
