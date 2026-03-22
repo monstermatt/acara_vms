@@ -14,8 +14,28 @@ def login_view(request):
 def logout_view(request):
     ...
 
+def add_user(request):
+    ...
+
+# Update name or role of a user
+# Email should not be updateable since thats the identifying username
+# A new email should be a new user #TODO Requirement to be confirmed
+def update_user(request):
+    ...
+
+# TODO: Determine if this is needed
+def remove_user(request):
+    ...
+
+# View role and name of a user
+def view_user(request):
+    ...
+
 # Add a volunteer to the system
+# NOTE Frontend dev: please pass values for normalized fields as well.
+# The API will separate out the fields and add into the relevant normnalized tables
 def add_volunteer(request):
+
     ...
 
 # Update one or more characteristics of a volunteer
@@ -23,7 +43,7 @@ def update_volunteer(request):
     ...
 
 # Mark volunteer as inactive in the database
-# Note for other APIs: Filter out inactive volunteers (consider them deleted)
+# NOTE for other APIs: Filter out inactive volunteers (consider them deleted)
 def remove_volunteer(request):
     ...
 
@@ -32,7 +52,7 @@ def view_volunteer(request):
     ...
 
 # View volunteer's schedule for given date
-# Note to UI developers: please pass current date when looking for today's apts
+# NOTE UI developers: please pass current date when looking for today's apts
 def view_volunteer_apt_by_date(request):
     ...
 
