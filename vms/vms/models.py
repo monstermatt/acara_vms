@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser # To extend the default User model with custom fields
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 # TODO : Add constraints across all tables as needed
@@ -50,12 +51,12 @@ class Volunteer(models.Model):
     address = models.TextField(blank=False)
 
     class AgeGroup(models.TextChoices):
-        AGEGROUP1 = "AGEGROUO1", _("18-25")
+        AGEGROUP1 = "AGEGROUP1", _("18-25")
         AGEGROUP2 = "AGEGROUP2", _("26-50")
         AGEGROUP3 = "AGEGROUP3", _("51 and above")
     
     age_group = models.CharField(
-        max_length=8,
+        max_length=9,
         choices = AgeGroup.choices
 
     )
@@ -68,7 +69,7 @@ class Volunteer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    class Status(model.TextChoices):
+    class Status(models.TextChoices):
         ACTIVE = "ACTIVE", _("Active")
         INACTIVE = "INACTIVE", _("Inactive")
         PENDING = "PENDING", _("Pending")
