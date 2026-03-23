@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { signOut } from "next-auth/react"
 
 /* importing SVG icons*/
 import {
@@ -186,7 +187,7 @@ export default function Sidebar() {
           label="Logout"
           icon={<LogoutIcon width={20} height={20} />}
           active={pathname === '/login'}
-          onClick={() => router.push('/login')}
+          onClick={() =>signOut() } //automatically redirects to login page via api/auth/[...nextauth]/routes.ts pages
           collapsed={collapsed}
         />
       </div>
