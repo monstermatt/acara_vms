@@ -1,6 +1,12 @@
 from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import MyTokenObtainPairSerializer
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+import json
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, render
+from vms.models import User, Volunteer, VolunteerSkill, VolunteerAbsence, VolunteerAvailability, Visit, VolunteerDutyPreference, VolunteerLanguage, VolunteerRecognition, VolunteerSchedule, Recognition, DutyPreference, Skill
 
 # Create your views here.
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -14,8 +20,34 @@ def login_view(request):
 def logout_view(request):
     ...
 
+# @login_required TODO: Uncomment after login is implemented
 def add_user(request):
-    ...
+
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    else:
+        # TODO Add skill and other many to many fields
+        data = json.loads(request.body)
+        email = data.get("email")
+        username = data.get("username")
+        first_name = data.get("first_name")
+        last_name = data.get("last_name", "")
+        role = data.get("role")
+        is_staff = data.get("is_staff",False)
+        is_active = data.get("is_active", True)
+
+        user = User(
+            email = email,
+            username = username,
+            first_name = first_name,
+            last_name = last_name,
+            role = role,
+            is_staff = is_staff,
+            is_active = is_active
+                    )
+        user.save()
+    return JsonResponse({"message": "User saved successfully."}, status=201)
+
 
 # Update name or role of a user
 # Email should not be updateable since thats the identifying username
