@@ -59,6 +59,13 @@ REST_FRAMEWORK = {
     )
 }
 
+# Set token lifetimes for JWT authentication
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
 #specify front-end origns
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
