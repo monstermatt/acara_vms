@@ -14,7 +14,10 @@ User = get_user_model()
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-
+# file data.json has sample like below for testing registration API:
+# {"email": "user03@vms.com", "password": "Pass1234", "name": "User01", "role": "volun"}
+# then:
+# curl -X POST http://localhost:8000/api/register -H "Content-Type: application/json" -d '@data.json'
 class RegisterView(APIView):
     def post(self, request):
         email = request.data.get('email')
@@ -99,6 +102,10 @@ def remove_user(request):
 # def view_user(request):
 #     pass
 
+
+# Get sample JWT token for testing protected APIs
+# then
+# curl.exe -X GET http://localhost:8000/api/view_user -H "Authorization: Bearer 
 class ViewUser(APIView):
     permission_classes = [IsAuthenticated]
 
