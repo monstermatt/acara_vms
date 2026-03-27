@@ -105,7 +105,8 @@ def remove_user(request):
 
 # Get sample JWT token for testing protected APIs
 # then
-# curl.exe -X GET http://localhost:8000/api/view_user -H "Authorization: Bearer 
+# curl -X GET http://localhost:8000/api/view_user -H "Authorization: Bearer <your_token_here>" 
+# Note: replace <your_token_here> with the 'access' token received from login or registration response
 class ViewUser(APIView):
     permission_classes = [IsAuthenticated]
 
