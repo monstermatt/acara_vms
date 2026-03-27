@@ -81,6 +81,7 @@ class LogoutView(APIView):
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+# @login_required TODO: Uncomment after login is implemented
 def add_user(request):
     pass
 

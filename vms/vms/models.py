@@ -69,17 +69,6 @@ class Volunteer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    class Status(models.TextChoices):
-        ACTIVE = "ACTIVE", _("Active")
-        INACTIVE = "INACTIVE", _("Inactive")
-        PENDING = "PENDING", _("Pending")
-    
-    status = models.CharField(
-        max_length=8,
-        choices = Status.choices
-
-    )
-
     class Gender(models.TextChoices):
         MALE = "M", _("Male")
         FEMALE = "F", _("Female")
@@ -137,7 +126,7 @@ class VolunteerSkill(models.Model):
     
 
 # Recognition model to represent the types of skills
-class Recognotion(models.Model):
+class Recognition(models.Model):
     recognition_id = models.AutoField(primary_key=True)
     recognition_name = models.CharField(max_length=100)
 
