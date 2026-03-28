@@ -1,26 +1,22 @@
+import AppointmentsCard from "../../components/SummaryCard";
+
 export default function VolunteerReportingPage() {
   return (
     <main className = "main-container">
-    <header className ="mb-8">
-    <h2 className="page-header">Volunteer Reporting</h2>
-    <p className="text-gray-500">Today's reports and audits</p>
-    </header>
-
-    <div className = 'flex'>
-      <div className = "reporting-top-button">
-        Appointments this month
-      </div>
-
-      <div className = "reporting-top-button">
-        Charted Late
-      </div>
-
-      <div className = "reporting-top-button">
-        Appointments on time (%)
-      </div>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold text-[#9f0059] mb-4">Reporting</h1>
+      <p className="text-gray-600">Here are today’s volunteer meetings and audits</p>
     </div>
 
+    <div className = 'flex gap-4 px-8'>
+      <AppointmentsCard title="Appointments this month" value={480} iconSrc="/calendar_icon.svg" />
+      <AppointmentsCard title="Charted Late" value={120} iconSrc="/chart_late_icon.svg" />
+      <AppointmentsCard title="Appointments on time (%)" value="75%" iconSrc="/app_on_time_icon.svg" />
+    </div>
 
+    
+
+    {/* Wait for Esra code to align the UI */}
     <div className = 'table-container'>
       <h1 className = 'text-black text-xl'>Volunteer Audits</h1>
       <table>
