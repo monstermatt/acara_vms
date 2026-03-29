@@ -15,14 +15,6 @@ from vms.models import User, Volunteer, VolunteerSkill, VolunteerAbsence, Volunt
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-# Authenticate user to login if registered
-def login_view(request):
-    ...
-    
-# Exit application
-def logout_view(request):
-    ...
-
 # NOTE To understand this better, please review documentation: https://www.django-rest-framework.org
 # View behavior for User
 class UserViewSet(viewsets.ModelViewSet):
