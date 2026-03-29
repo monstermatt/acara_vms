@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     "vms",
     "corsheaders",
+    'django_extensions',
 ]
 
 #set django auth to use vms to preven default conflicts (I may have screwed this up, but it was the only way I could get it to work)
