@@ -63,6 +63,7 @@ REST_FRAMEWORK = {
 # Set token lifetimes for JWT authentication
 from datetime import timedelta
 SIMPLE_JWT = {
+    "TOKEN_OBTAIN_SERIALIZER": "vms.serializers.MyTokenObtainPairSerializer", #use custom serializer for auth
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
