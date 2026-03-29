@@ -41,11 +41,52 @@ class User(AbstractUser):
     def __str__(self):
         return self.username  # Display the username
 
+# Skills model to represent the types of skills
+class Skill(models.Model):
+    skill_id = models.AutoField(primary_key=True)
+    skill_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.skill_name  # Display the skill name
+    
+# Language model to represent languages
+class Language(models.Model):
+    language_id = models.AutoField(primary_key=True)
+    language_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.language_name  # Display the language name
+    
+
+# Recognition model to represent the types of skills
+class Recognition(models.Model):
+    recognition_id = models.AutoField(primary_key=True)
+    recognition_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.recognition_name  # Display the skill name
+
+# Possible preferences of volunteering duties
+class VolunteeringPreference(models.Model):
+    pref_id = models.AutoField(primary_key=True)
+    preference = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.preference  # Display the duty name
+    
+
 # Volunteer model extending the default User model
 class Volunteer(models.Model):
 
     # One-to-one relationship with the User model
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='volunteer_profile')
+
+    # Many to many relationships
+    skills = models.ManyToManyField(Skill, blank = True)
+    recognitions = models.ManyToManyField(Recognition, blank=True)
+    preferences = models.ManyToManyField(VolunteeringPreference, blank=True)
+    languages = models.ManyToManyField(Language, blank=True)
+    
     # Additional fields for volunteers
     phone_number = models.CharField(max_length=15, blank=False)
     address = models.TextField(blank=False)
@@ -83,80 +124,6 @@ class Volunteer(models.Model):
         return self.user  # Display the username
 
 
-
-# Skills model to represent the types of skills
-class Language(models.Model):
-    language_id = models.AutoField(primary_key=True)
-    language_name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.language_name  # Display the skill name
-    
-# LanguageVolunteer model to represent the languages of volunteers
-class VolunteerLanguage(models.Model):
-    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='languages')
-    language = models.ForeignKey(Language, on_delete=models.CASCADE)
-    class LanguageType(models.TextChoices):
-        MALE = "NATIVE", _("Native")
-        FEMALE = "SPOKEN", _("Spoken")
-        
-    language_type = models.CharField(
-        max_length=6,
-        choices=LanguageType.choices
-    )
-
-    def __str__(self):
-        return f"{self.volunteer.user} - {self.language.language_name}"  # Display the volunteer's username and language name
-
-# Skills model to represent the types of skills
-class Skill(models.Model):
-    skill_id = models.AutoField(primary_key=True)
-    skill_name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.skill_name  # Display the skill name
-    
-# Skils model to represent the skills of volunteers
-class VolunteerSkill(models.Model):
-    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='skills')
-    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.volunteer.user} - {self.skill.skill_name}"  # Display the volunteer's username and skill name
-    
-
-# Recognition model to represent the types of skills
-class Recognition(models.Model):
-    recognition_id = models.AutoField(primary_key=True)
-    recognition_name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.recognition_name  # Display the skill name
-    
-# Skils model to represent the skills of volunteers
-class VolunteerRecognition(models.Model):
-    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='recognitions')
-    recognition = models.ForeignKey(Skill, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.volunteer.user} - {self.recognition}"  # Display the volunteer's username and skill name
-
-# Possible preferences of volunteering duties
-class DutyPreference(models.Model):
-    pref_id = models.AutoField(primary_key=True)
-    duty_name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.duty_name  # Display the duty name
-    
-# Model to represent the duty preferences of volunteers
-class VolunteerDutyPreference(models.Model):
-    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='duty_preferences')
-    duty_preference = models.ForeignKey(DutyPreference, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.volunteer.user} - {self.duty_preference.duty_name}"  # Display the volunteer's username and duty preference name
-    
 # Model to represent volunteer availability
 class VolunteerAvailability(models.Model):
     volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='availabilities')
