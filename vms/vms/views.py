@@ -1,145 +1,103 @@
 from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import MyTokenObtainPairSerializer
-from django.contrib.auth import authenticate
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from .serializers import MyTokenObtainPairSerializer, UserSerializer, VolunteerSerializer, SkillSerializer, RecognitionSerializer, LanguageSerializer, VolunteeringPreferenceSerializer
+from rest_framework import serializers, viewsets
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from rest_framework import status
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+import json
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, render
+from vms.models import User, Volunteer, VolunteerAbsence, VolunteerAvailability, Visit, VolunteeringPreference, VolunteerSchedule, Recognition, Skill, Language
 
 # Create your views here.
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-# file data.json has sample like below for testing registration API:
-# {"email": "user03@vms.com", "password": "Pass1234", "name": "User01", "role": "volun"}
-# then:
-# curl -X POST http://localhost:8000/api/register -H "Content-Type: application/json" -d '@data.json'
-class RegisterView(APIView):
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-        name = request.data.get('name')
-        role = request.data.get('role')
+# NOTE To understand this better, please review documentation: https://www.django-rest-framework.org
+# View for User
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
-        print(f"Received registration data: email={email}, name={name}, role={role}")
-        
-        if not email or not password or not name or not role:
-            return Response({'error': 'All fields are required'}, 
-                            status=status.HTTP_400_BAD_REQUEST)
-        
-        if User.objects.filter(email=email).exists():
-            return Response({'error': 'Email already exists'},
-                            status=status.HTTP_400_BAD_REQUEST)
+# View for Skill
+class SkillViewSet(viewsets.ModelViewSet):
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
 
-        user = User.objects.create_user(username=email, email=email, password=password)
-        user.first_name = name
-        user.role = role
-        user.save()
+# View for Recognition
+class RecognitionViewSet(viewsets.ModelViewSet):
+    queryset = Recognition.objects.all()
+    serializer_class = RecognitionSerializer
 
-        # Assuming you have a profile model to store additional info like role
-        # Profile.objects.create(user=user, role=role)
+# View for Volunteering preference
+class PreferenceViewSet(viewsets.ModelViewSet):
+    queryset = VolunteeringPreference.objects.all()
+    serializer_class = VolunteeringPreferenceSerializer
 
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }, status=status.HTTP_201_CREATED)
-    
+# View for Languages
+class LanguageViewSet(viewsets.ModelViewSet):
+    queryset = Language.objects.all()
+    serializer_class = LanguageSerializer
 
-# Authenticate user to login if registered
-class LoginView(APIView):
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
+# View for Volunteer
+class VolunteerViewSet(viewsets.ModelViewSet):
+    queryset = Volunteer.objects.all()
+    serializer_class = VolunteerSerializer
 
-        if not email or not password:
-            return Response({'error': 'Email and password are required'}, 
-                            status=status.HTTP_400_BAD_REQUEST)
-        
-        user = authenticate(request, username=email, password=password)
+    # NOTE create and update are overridden here due to the presence of many to many and through table/models
 
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
-        else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-# Exit application
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    def create(self, request):
+        # Extract data of many to many relationship models into separate lists
+        skills_data = request.data.pop('skils', [])
+        recognition_data = request.data.pop('recognitions', [])
+        preference_data = request.data.pop('preferences', [])
+        language_data = request.data.pop('languages',[])
 
-    def post(self, request):
-        try:
-            refresh_token = request.data.get("refresh")
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data = request.data)
+        if serializer.is_valid():
+            volunteer = serializer.save()
 
-# @login_required TODO: Uncomment after login is implemented
-def add_user(request):
-    pass
+            # Many to many fields
+            if skills_data:
+                volunteer.skills.set(skills_data)
+            if recognition_data:
+                volunteer.recognitions.set(recognition_data)
+            if preference_data:
+                volunteer.preferences.set(preference_data)
+            if language_data:
+                volunteer.languages.set(language_data)
 
-# Update name or role of a user
-# Email should not be updateable since thats the identifying username
-# A new email should be a new user #TODO Requirement to be confirmed
-def update_user(request):
-    pass
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# TODO: Determine if this is needed
-def remove_user(request):
-    pass
+    def update(self, request, pk=None):
 
-# View role and name of a user
-# def view_user(request):
-#     pass
+        # Since it's an update, first volunteer data is fetched
+        volunteer = self.get_object()
+
+        # Extract data of many to many relationship models into separate lists
+        skills_data = request.data.pop('skils', [])
+        recognition_data = request.data.pop('recognitions', [])
+        preference_data = request.data.pop('preferences', [])
+        language_data = request.data.pop('languages',[])
 
 
-# Get sample JWT token for testing protected APIs
-# then
-# curl -X GET http://localhost:8000/api/view_user -H "Authorization: Bearer <your_token_here>" 
-# Note: replace <your_token_here> with the 'access' token received from login or registration response
-class ViewUser(APIView):
-    permission_classes = [IsAuthenticated]
+        serializer = self.get_serializer(volunteer, data = request.data)
 
-    def get(self, request):
-        user = request.user
-        return Response({
-            'email': user.email,
-            'name': user.first_name,
-            'role': user.role,
-        })
+        if serializer.is_valid():
+            volunteer = serializer.save()
 
-# Add a volunteer to the system
-# NOTE Frontend dev: please pass values for normalized fields as well.
-# The API will separate out the fields and add into the relevant normnalized tables
-def add_volunteer(request):
+            # Many to many fields
+            if skills_data:
+                volunteer.skills.set(skills_data)
+            if recognition_data:
+                volunteer.recognitions.set(recognition_data)
+            if preference_data:
+                volunteer.preferences.set(preference_data)
+            if language_data:
+                volunteer.languages.set(language_data)
 
-    pass
-
-# Update one or more characteristics of a volunteer
-def update_volunteer(request):
-    pass
-
-# Mark volunteer as inactive in the database
-# NOTE for other APIs: Filter out inactive volunteers (consider them deleted)
-def remove_volunteer(request):
-    pass
-
-# View details of a selected volunteer
-def view_volunteer(request):
-    pass
-
-# View volunteer's schedule for given date
-# NOTE UI developers: please pass current date when looking for today's apts
-def view_volunteer_apt_by_date(request):
-    pass
-
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
