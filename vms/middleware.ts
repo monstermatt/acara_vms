@@ -15,9 +15,9 @@ export default withAuth(
                 const path = req.nextUrl.pathname;
                 const userRole = token.role;
 
-                if (path.startsWith("/settings")) { //prevents non-admins fromaccessing settings, this is mostly for testing. comment this IF out to access the page without ADMIN role
-                    return userRole === "ADMIN";
-                }
+                // if (path.startsWith("/settings")) { //prevents non-admins fromaccessing settings, this is mostly for testing. comment this IF out to access the page without ADMIN role
+                //     return userRole === "ADMIN";
+                // }
 
                 return true; //allow unprotected routes to be accessed
             }
