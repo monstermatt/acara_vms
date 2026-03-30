@@ -1,4 +1,7 @@
-import AppointmentsCard from "../../components/SummaryCard";
+import SummaryCard from "../../components/SummaryCard";
+
+import {CalendarSummaryIcon, ChartLateSummaryIcon, AppOnTimeSummaryIcon} from '@/icons'
+
 
 export default function VolunteerReportingPage() {
   return (
@@ -9,9 +12,9 @@ export default function VolunteerReportingPage() {
     </div>
 
     <div className = 'flex gap-4 px-8'>
-      <AppointmentsCard title="Appointments this month" value={480} iconSrc="/calendar_icon.svg" />
-      <AppointmentsCard title="Charted Late" value={120} iconSrc="/chart_late_icon.svg" />
-      <AppointmentsCard title="Appointments on time (%)" value="75%" iconSrc="/app_on_time_icon.svg" />
+      <SummaryCard title="Appointments this month" value={480} icon={<CalendarSummaryIcon />} />
+      <SummaryCard title="Charted Late" value={120} icon={<ChartLateSummaryIcon />} />
+      <SummaryCard title="Appointments on time (%)" value="75%" icon={<AppOnTimeSummaryIcon />} />
     </div>
 
     

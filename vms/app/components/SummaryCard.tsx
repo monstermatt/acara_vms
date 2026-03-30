@@ -1,6 +1,6 @@
 
 
-const AppointmentsCard = ({ title, value, iconSrc }: { title: string; value: string | number; iconSrc: string }) => {
+const SummaryCard = ({ title, value, icon }: { title: string; value: string | number; icon: React.ReactNode }) => {
   return (
     <div className="summary-card relative w-full h-32 rounded-3xl p-4 text-white overflow-hidden
                     bg-gradient-to-b from-[#CD5000] to-[#9F0059]">
@@ -10,14 +10,13 @@ const AppointmentsCard = ({ title, value, iconSrc }: { title: string; value: str
         <h1 className="text-3xl font-bold mt-2">{value}</h1>
       </div>
 
-      <img
-        src={iconSrc}
-        alt={`Summary Icon Card for ${title}`}
-        className="absolute right-0 bottom-0 h-24 w-auto object-contain block"
-      />
+
+      <div className="absolute right-0 bottom-0 h-24 w-auto object-contain block">
+        {icon}
+      </div>
 
     </div>
   );
 };
 
-export default AppointmentsCard;
+export default SummaryCard;
