@@ -43,7 +43,7 @@ class VolunteerSerializer(serializers.ModelSerializer):
     skills = SkillSerializer(many=True, read_only=True)
     recognitions = RecognitionSerializer(many=True, read_only=True)
     preferences = VolunteeringPreferenceSerializer(many=True, read_only=True)
-    preferences = LanguageSerializer(many=True, read_only=True)
+    languages = LanguageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Volunteer
