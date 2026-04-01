@@ -1,0 +1,40 @@
+// MARK: - Here is where we dynamically request the events via API
+import {CalendarEvent} from "./calendarUtils"
+import { makeEvent } from "./calendarUtils";
+
+
+export const currEvents: CalendarEvent[] = [
+  makeEvent("1", "Appointment 1", 2025, 0, 6, 9, 0, 9, 30, "pink"),
+  makeEvent("2", "Appointment 2", 2025, 0, 6, 11, 0, 12, 0, "pink"),
+  makeEvent("3", "Appointment 3", 2025, 0, 7, 10, 0, 10, 45, "pink"),
+  makeEvent("4", "Appointment 4", 2025, 0, 7, 14, 30, 15, 0, "pink"),
+  makeEvent("5", "Appointment 5", 2025, 0, 8, 9, 0, 11, 0, "pink"),
+  makeEvent("6", "Appointment 6", 2025, 0, 8, 10, 30, 11, 15, "pink"),
+  makeEvent("7", "Appointment 7", 2025, 0, 8, 13, 30, 14, 0, "pink"),
+  makeEvent("8", "Appointment 8", 2025, 0, 9, 12, 0, 13, 0, "pink"),
+  makeEvent("9", "Appointment 9", 2025, 0, 10, 9, 0, 9, 30, "pink"),
+  makeEvent("10", "Appointment 10", 2025, 0, 10, 10, 0, 10, 45, "pink"),
+  makeEvent("11", "Appointment 11", 2025, 0, 10, 13, 30, 14, 30, "pink"),
+  makeEvent("12", "Appointment 12", 2025, 0, 11, 11, 0, 12, 0, "pink"),
+  makeEvent("13", "Appointment 13", 2025, 0, 13, 12, 15, 13, 15, "pink"),
+  makeEvent("14", "Appointment 14", 2025, 0, 15, 9, 30, 10, 30, "pink"),
+  makeEvent("15", "Appointment 15", 2025, 0, 16, 10, 0, 10, 30, "pink"),
+  makeEvent("16", "Appointment 16", 2025, 0, 16, 16, 0, 17, 0, "pink"),
+  makeEvent("17", "Appointment 17", 2025, 0, 18, 7, 0, 10, 0, "pink"),
+  makeEvent("18", "Appointment 18", 2025, 0, 21, 10, 30, 11, 30, "pink"),
+  makeEvent("19", "Appointment 19", 2025, 0, 21, 13, 0, 14, 0, "pink"),
+  makeEvent("20", "Appointment 20", 2025, 0, 21, 19, 0, 20, 30, "pink"),
+  makeEvent("21", "Appointment 21", 2025, 0, 22, 9, 0, 11, 0, "pink"),
+  makeEvent("22", "Appointment 22", 2025, 0, 22, 14, 30, 15, 15, "pink"),
+  makeEvent("23", "Appointment 23", 2025, 0, 23, 10, 0, 10, 45, "pink"),
+  makeEvent("24", "Appointment 24", 2025, 0, 24, 13, 45, 14, 30, "pink"),
+  makeEvent("25", "Appointment 25", 2025, 0, 24, 14, 30, 15, 30, "pink"),
+  makeEvent("26", "Appointment 26", 2025, 0, 28, 11, 0, 12, 0, "pink"),
+  makeEvent("27", "Appointment 27", 2025, 0, 28, 12, 45, 13, 30, "pink"),
+  makeEvent("28", "Appointment 28", 2025, 0, 29, 9, 30, 10, 30, "pink"),
+  makeEvent("29", "Appointment 29", 2025, 0, 30, 16, 0, 17, 0, "pink"),
+  makeEvent("30", "Appointment 30", 2025, 0, 30, 17, 30, 19, 0, "pink"),
+  makeEvent("31", "Appointment 31", 2025, 0, 31, 9, 0, 9, 30, "pink"),
+  makeEvent("32", "Appointment 32", 2025, 0, 10, 10, 0, 11, 30, "pink"),
+  makeEvent("33", "Appointment 33", 2025, 0, 10, 10, 30, 11, 15, "pink"),
+];
