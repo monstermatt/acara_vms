@@ -7,28 +7,45 @@ import { MessageIcon } from "@/icons";
 import { FilterIcon } from "@/icons";
 import { Languages } from "lucide-react";
 
-/*mockdata*/
+interface NestedSkill {
+  skill_id: number;
+  skill_name: string;
+}
+interface NestedLanguage {
+  language_id: number;
+  language_name: string;
+}
+interface NestedPreference {
+  pref_id: number;
+  preference: string;
+}
 interface UserData {
   id: number;
-  name: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
   gender: string;
-  skills: string[];
-  schedule: string;
-  isSub: boolean;
-  languages: string[];
-  preferences: string[]
-  travelDistance: number;
-}
-const initialData: UserData[] = [
-  { id: 1, name: "Alice Smith", gender: "Female", skills: ["Death Doula", "Knitting"], schedule: "Monday 1000-1200", isSub: true, languages: ["English", "Spanish"], preferences: ["office", "patient"], travelDistance: 10 },
-  { id: 2, name: "Bob Johnson", gender: "Male", skills: ["IT", "Martial Arts"], schedule: "Tuesday 1400-1600", isSub: false, languages: ["English"], preferences: ["office", "patient"], travelDistance: 15 },
-  { id: 3, name: "Charlie Davis", gender: "Non-binary", skills: ["Grief Counseling", "ASL"], schedule: "Monday 1200-1800", isSub: false, languages: ["English", "ASL"], preferences: ["special events", "patient"], travelDistance: 20 },
-  { id: 4, name: "Diana Prince", gender: "Female", skills: ["Respite Care", "Canadian"], schedule: "Wednesday 1300-1700", isSub: false, languages: ["English", "French"], preferences: ["office", "patient"], travelDistance: 25 },
-  { id: 5, name: "Evan Wright", gender: "Male", skills: ["Guitar", "Vigil Team"], schedule: "Friday 0800-1200", isSub: false, languages: ["English"], preferences: ["patient", "facility"], travelDistance: 30 },
-  { id: 6, name: "Fiona Lee", gender: "Female", skills: ["Cooking", "Gardening"], schedule: "Thursday 1000-1400", isSub: true, languages: ["English", "Spanish"], preferences: ["office", "special events"], travelDistance: 5 },
-  { id: 7, name: "George Miller", gender: "Male", skills: ["Cornhole", "Competitive Eating"], schedule: "Monday 0800-1200", isSub: false, languages: ["English"], preferences: ["patient", "facility"], travelDistance: 12 },
-  { id: 8, name: "Hannah Brown", gender: "Female", skills: ["Painting", "Music"], schedule: "Tuesday 1000-1400", isSub: false, languages: ["English", "French"], preferences: ["office", "patient"], travelDistance: 8 },
-]
+  skills: NestedSkill[];
+  languages: NestedLanguage[];
+  preferences: NestedPreference[];
+  max_distance_preferred: number;
+  phone_number: string; 
+  sub_duty_preference: boolean; 
+  }
+// const initialData: UserData[] = [
+//   { id: 1, name: "Alice Smith", gender: "Female", skills: ["Death Doula", "Knitting"], schedule: "Monday 1000-1200", isSub: true, languages: ["English", "Spanish"], preferences: ["office", "patient"], travelDistance: 10 },
+//   { id: 2, name: "Bob Johnson", gender: "Male", skills: ["IT", "Martial Arts"], schedule: "Tuesday 1400-1600", isSub: false, languages: ["English"], preferences: ["office", "patient"], travelDistance: 15 },
+//   { id: 3, name: "Charlie Davis", gender: "Non-binary", skills: ["Grief Counseling", "ASL"], schedule: "Monday 1200-1800", isSub: false, languages: ["English", "ASL"], preferences: ["special events", "patient"], travelDistance: 20 },
+//   { id: 4, name: "Diana Prince", gender: "Female", skills: ["Respite Care", "Canadian"], schedule: "Wednesday 1300-1700", isSub: false, languages: ["English", "French"], preferences: ["office", "patient"], travelDistance: 25 },
+//   { id: 5, name: "Evan Wright", gender: "Male", skills: ["Guitar", "Vigil Team"], schedule: "Friday 0800-1200", isSub: false, languages: ["English"], preferences: ["patient", "facility"], travelDistance: 30 },
+//   { id: 6, name: "Fiona Lee", gender: "Female", skills: ["Cooking", "Gardening"], schedule: "Thursday 1000-1400", isSub: true, languages: ["English", "Spanish"], preferences: ["office", "special events"], travelDistance: 5 },
+//   { id: 7, name: "George Miller", gender: "Male", skills: ["Cornhole", "Competitive Eating"], schedule: "Monday 0800-1200", isSub: false, languages: ["English"], preferences: ["patient", "facility"], travelDistance: 12 },
+//   { id: 8, name: "Hannah Brown", gender: "Female", skills: ["Painting", "Music"], schedule: "Tuesday 1000-1400", isSub: false, languages: ["English", "French"], preferences: ["office", "patient"], travelDistance: 8 },
+// ]
 
 /*TEMPORARY STYLES */
 const trStyle = {
@@ -43,10 +60,13 @@ const tbodyStyle = {
 }
 
 export default function MatchingPage() {
+  /*hold fetched data*/
+  const [volunteers, setVolunteers] =useState<UserData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   /*modal state/functions */
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
   /*filter state/functions */
@@ -61,6 +81,33 @@ export default function MatchingPage() {
     travelDistance: "",
   });
 
+  useEffect(() => {
+    const fetchVolunteers = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/volunteers/");
+
+        if (!response.ok) {
+          throw new Error('Danger Will Robinson: ${response.status}');
+        }
+
+        const data = await response.json();
+
+        console.log("Fetched data: ", data); //debugging
+
+        setVolunteers(data);
+      }
+      catch (err:any) {
+        console.error("Failed to fetch volunteers:", err);
+        setError(err.message);
+      }
+      finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVolunteers();
+    }, []);
+
   const filterChange = (e:React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const {name, value} = e.target;
     setFilters((prevFilters) => ({
@@ -69,26 +116,34 @@ export default function MatchingPage() {
     }))
   };
 
-  const filteredData = initialData.filter((user) => {
-    const matchesSkill = user.skills.some((skillItem) =>
-      skillItem.toLowerCase().includes(filters.skill.toLowerCase())
+  const filteredData = volunteers.filter((volunteer) => {
+    const volSkills = volunteer.skills || [];
+    const volPreference = volunteer.preferences || [];
+    const fullName = `${volunteer.user.first_name || ""} ${volunteer.user?.last_name || ""}`;
+
+    const matchesSkill = filters.skill === "" || volSkills.some((skillItem) =>
+      skillItem.skill_name.toLowerCase().includes(filters.skill.toLowerCase())
     );
-    const matchesPreference = user.preferences.some((preferenceItem) =>
-      preferenceItem.toLowerCase().includes(filters.preferences.toLowerCase())
+    const matchesPreference = filters.preferences === "" || volPreference.some((preferenceItem) =>
+      preferenceItem.preference.toLowerCase().includes(filters.preferences.toLowerCase())
     );
     const matchesDistance = 
       filters.travelDistance === "" ||
-      user.travelDistance <= parseInt(filters.travelDistance);
+      volunteer.max_distance_preferred >= parseInt(filters.travelDistance);
 
   return (
-    user.name.toLowerCase().includes(filters.name.toLowerCase()) &&
-    user.gender.toLowerCase().includes(filters.gender.toLowerCase()) &&
+    fullName.toLowerCase().includes(filters.name.toLowerCase()) &&
+    (volunteer.gender || "").toLowerCase().includes(filters.gender.toLowerCase()) &&
     matchesSkill &&
     matchesPreference &&
-    matchesDistance &&
-    user.schedule.toLowerCase().includes(filters.schedule.toLowerCase())
+    matchesDistance //&&
+    //(volunteer.schedule || "").toLowerCase().includes(filters.schedule.toLowerCase())
   );
 });
+
+if (isLoading) return <div className="p-8 text-center">Loading volunteers</div>;
+if (error) return <div className = "p-8 text-center text-red-500">Error Loading. {error}</div>;
+
 
 const resetFilters = () => {
   setFilters({
@@ -158,9 +213,9 @@ return (
           onChange={filterChange}
         >
           <option value="">All genders</option>
-          <option value="Female">Female</option>
-          <option value="Male">Male</option>
-          <option value="Non-binary">Non-binary</option>
+          <option value="Female">F</option>
+          <option value="Male">M</option>
+          <option value="Non-binary">N</option>
         </select>
 
         <select
@@ -242,25 +297,25 @@ return (
       </thead>
       <tbody style={tbodyStyle}>
         {filteredData.length > 0 ? (
-          filteredData.map((user) => (
-            <tr key={user.name} style={trStyle}>
-              <td>{user.name}</td>
-              <td>PhoneNumber</td>
-              <td>{user.gender}</td>
+          filteredData.map((volunteer) => (
+            <tr key={volunteer.id} style={trStyle}>
+              <td>{volunteer.user?.first_name} {volunteer.user?.last_name}</td>
+              <td>{volunteer.phone_number}</td>
+              <td>{volunteer.gender}</td>
               <td>
                 <div>
-                  {user.skills.map((skill, index) =>(
-                    <span key={index}>{skill}, </span>
+                  {volunteer.skills?.map((skill, index) =>(
+                    <span key={index}>{skill.skill_name}{index < volunteer.skills.length - 1 ? ", " : ""} </span>
                   ))}
                 </div>
               </td>
-              <td>{user.schedule}</td>
-              <td>{user.languages.join(", ")}</td>
-              <td>{user.isSub ? "Yes" : "No"}</td>
-              <td>{user.preferences.map((preference, index) =>(
-                <span key={index}>{preference}, </span>
+              <td>Pending</td>
+              <td>{volunteer.languages?.map(lang => lang.language_name).join(", ")}</td>
+              <td>{volunteer.sub_duty_preference ? "Yes" : "No"}</td>
+              <td>{volunteer.preferences?.map((pref, index) =>(
+                <span key={index}>{pref.preference}{index < volunteer.preferences.length-1 ? ",": ""} </span>
               ))}</td>
-              <td>{user.travelDistance} miles</td>
+              <td>{volunteer.max_distance_preferred} miles</td>
               <td>
                 <div className = "flex items-center justify-center gap-2">
                   <MessageIcon/>
