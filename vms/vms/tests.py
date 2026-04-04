@@ -11,7 +11,7 @@ from .models import User, Volunteer
 class UserAPITests(APITestCase):
 
     # Set up for tests
-    def SetUp(self):
+    def setUp(self):
         self.client = APIClient()
 
         # Adding add_user within setUp since all other tests will need a user
@@ -21,6 +21,7 @@ class UserAPITests(APITestCase):
             role = User.Role.ADMIN,
             is_active = True
         )
+        self.client.force_authenticate(user=self.user)
     
     # Sanity test if user of type coordinator can be created
     def test_add_coordinator(self):
@@ -33,7 +34,7 @@ class UserAPITests(APITestCase):
         self.assertTrue(User.objects.filter(username='user1').exists())
 
     # Sanity test if user of type volunteer can be created
-    def test_add_coordinator(self):
+    def test_add_volunteer(self):
         response = self.client.post('/api/users/', {
             'username': 'volunteer1',
             'email': 'volunteer1@vmstest.com',
@@ -50,36 +51,95 @@ class UserAPITests(APITestCase):
         ...
 
 
-class UserAPITests(APITestCase):
+class VolunteerAPITests(APITestCase):
 
     # Set up volunteer for tests
-    def SetUp(self):
+    def setUp(self):
         self.client = APIClient()
 
         # Adding add_user within setUp since all other tests will need a user
-        self.user = User.objects.create_user(
+        self.adminuser = User.objects.create_user(
             username ='admin2',
-            email = 'admin3@vmstest.com',
+            email = 'admin2@vmstest.com',
             role = User.Role.ADMIN,
             is_active = True
         )
-
-        # Adding add_user within setUp since all other tests will need a user
-        self.user = User.objects.create_user(
-            username ='testvol1',
+        self.client.force_authenticate(user=self.adminuser)
+        
+        # Adding volunteer type within setUp for tests
+        self.vol = User.objects.create_user(
+            username ='testvolunteer',
             email = 'test_volunteer1@vmstest.com',
             role = User.Role.VOLUNTEER,
             is_active = True
         )
 
-    def test_add_volunteet(self):
-        ...
+    def test_create_volunteer(self):
+        response = self.client.post('/api/volunteers/', {
+            'user_id': self.vol.pk,
+            'phone_number': '111-111-1111',
+            'address': 'test vol 1 address',
+            'age_group': 'AGEGROUP1',
+            'gender': 'M',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Volunteer.objects.filter(user=self.vol).exists())
+
+    def test_list_volunteers(self):
+        # create a volunteer from the user created of volunteer type
+        response = self.client.post('/api/volunteers/', {
+            'user_id': self.vol.pk,
+            'phone_number': '111-111-1111',
+            'address': 'test vol 1 address',
+            'age_group': 'AGEGROUP1',
+            'gender': 'M',
+        })
+
+        # list volunteers
+        response = self.client.get('/api/volunteers/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        
 
     def test_update_volunteer(self):
-        ...
+        # create a volunteer 
+        volunteer = Volunteer.objects.create(
+        user=self.vol,
+        phone_number='111-111-1111',
+        address='test address',
+        age_group='AGEGROUP1',
+        gender='M'
+    )
+
+        # update that volunteer
+        response = self.client.put(f'/api/volunteers/{volunteer.pk}/', {
+            'user_id': self.vol.pk,
+            'phone_number': '222-222-2222', 
+            'address': 'changed address',
+            'age_group': 'AGEGROUP2',
+            'gender': 'F'
+        },format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Volunteer.objects.get(pk=volunteer.pk).phone_number, '222-222-2222')
+        self.assertEqual(Volunteer.objects.get(pk=volunteer.pk).address, 'changed address')
+        self.assertEqual(Volunteer.objects.get(pk=volunteer.pk).gender, 'F')
     
-    def test_remove_volunteer(self):
-        ...
+    # def test_remove_volunteer(self):
+    #     # create a volunteer from the user created of volunteer type
+       
+    #     volunteer = User.objects.create_user(
+    #         username ='testvoluteer',
+    #         email = 'test_volunteer@vmstest.com',
+    #         role = User.Role.VOLUNTEER,
+    #         is_active = True
+    #     )
+    #     # remove that volunteer
+    #     response = self.client.put(f'/api/volunteers/{volunteer.pk}/', {
+    #         'user_id': self.vol.pk,
+    #         'is_active': 'False'
+    #     })
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertEqual(Volunteer.objects.get(pk=volunteer.pk).is_active, 'False')
     
 
 

@@ -71,13 +71,14 @@ class VolunteerViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         # Extract data of many to many relationship models into separate lists
-        skill_data, recognition_data, preference_data, language_data = self.extract_m2m(request.data)
+        data_copy = request.data.copy()
+        skill_data, recognition_data, preference_data, language_data = self.extract_m2m(data_copy)
 
-        serializer = self.get_serializer(data = request.data)
+        serializer = self.get_serializer(data = data_copy)
         
         if serializer.is_valid():
             volunteer = serializer.save()
-            self.set_m2m(skill_data, recognition_data, preference_data, language_data)
+            self.set_m2m(volunteer, skill_data, recognition_data, preference_data, language_data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -85,12 +86,13 @@ class VolunteerViewSet(viewsets.ModelViewSet):
         volunteer = self.get_object()
 
         # Extract data of many to many relationship models into separate lists
-        skill_data, recognition_data, preference_data, language_data = self.extract_m2m(request.data)
+        data_copy = request.data.copy()
+        skill_data, recognition_data, preference_data, language_data = self.extract_m2m(data_copy)
 
-        serializer = self.get_serializer(data = request.data)
+        serializer = self.get_serializer(volunteer, data = data_copy)
         
         if serializer.is_valid():
             volunteer = serializer.save()
-            set_m2m(skill_data, recognition_data, preference_data, language_data)
+            self.set_m2m(volunteer, skill_data, recognition_data, preference_data, language_data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
