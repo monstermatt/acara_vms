@@ -124,22 +124,21 @@ class VolunteerAPITests(APITestCase):
         self.assertEqual(Volunteer.objects.get(pk=volunteer.pk).address, 'changed address')
         self.assertEqual(Volunteer.objects.get(pk=volunteer.pk).gender, 'F')
     
-    # def test_remove_volunteer(self):
-    #     # create a volunteer from the user created of volunteer type
-       
-    #     volunteer = User.objects.create_user(
-    #         username ='testvoluteer',
-    #         email = 'test_volunteer@vmstest.com',
-    #         role = User.Role.VOLUNTEER,
-    #         is_active = True
-    #     )
-    #     # remove that volunteer
-    #     response = self.client.put(f'/api/volunteers/{volunteer.pk}/', {
-    #         'user_id': self.vol.pk,
-    #         'is_active': 'False'
-    #     })
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(Volunteer.objects.get(pk=volunteer.pk).is_active, 'False')
+    def test_remove_volunteer(self):
+    
+        # remove a volunteer by making a user of type volunteer as inactive
+        response = self.client.patch(f'/api/users/{self.vol.pk}/', {
+            'is_active': False
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(User.objects.get(pk=self.vol.pk).is_active)
     
 
-
+    def test_reactivate_volunteer(self):
+    
+        # remove a volunteer by making a user of type volunteer as inactive
+        response = self.client.patch(f'/api/users/{self.vol.pk}/', {
+            'is_active': True
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(User.objects.get(pk=self.vol.pk).is_active)
