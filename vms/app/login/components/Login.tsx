@@ -54,9 +54,7 @@ const Login = ({ setView }: Props) => {
     if (isInvalid) return
 
     try {
-        
-      // placeholder for authentication code
-      const success = false
+              const success = false
 
       if (!success) {
         setInvalidEmail(true)

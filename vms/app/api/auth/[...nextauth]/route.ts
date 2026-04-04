@@ -1,8 +1,22 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+//import EmailProvider from "next-auth/providers/email";
 
 const handler = NextAuth({
   providers: [
+    //MagicLinks require an email provider, which requires a bit of setup. This is configured to work with Gmail for testing purposes, but should be switched to something like SendGrid in production. For now, this is commented out since we aren't using the feature, but it can be easily re-enabled when needed by uncommenting the import and this section.
+  //   EmailProvider({
+  //   server: {
+  //     host: process.env.EMAIL_SERVER_HOST,
+  //     port: process.env.EMAIL_SERVER_PORT,
+  //     from: process.env.EMAIL_FROM,
+  //   auth: {
+  //       host: process.env.EMAIL_SERVER_HOST,
+  //       pass: process.env.EMAIL_SERVER_PASSWORD,
+  //     }
+  //   },
+  //   from: process.env.EMAIL_FROM
+  // }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -63,6 +77,7 @@ const handler = NextAuth({
   },
   pages: {
     signIn: '/login', // Path login page
+    newUser: ''
   }
 });
 

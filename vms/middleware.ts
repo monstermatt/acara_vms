@@ -27,7 +27,9 @@ export default withAuth(
 //list of routes to put behind authentication, in case we ever want to have /training or something publicly availble.
 export const config = {
     matcher: [
-//         "/dashboard/:path*",
-//         "/settings/:path*",
+        // "/dashboard/:path*",
+        // "/settings/:path*",
+        // "/volunteers/:path*",
+        // "/calendar/:path*",
     ]
 }
