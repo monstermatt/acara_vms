@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference
+from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference, VolunteerSchedule, VolunteerAbsence, VolunteerAvailability, Visit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Serializer for the User model
@@ -55,7 +55,7 @@ class VolunteerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-#Serializer for role based auth
+# Serializer for role based auth
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'
     @classmethod
@@ -64,3 +64,83 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['role'] = user.role
         token['username'] = user.username
         return token
+
+# Serializer for volunteer schedule
+class VolunteerScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerSchedule
+        fields = '__all__'
+
+    # Custom validation for schedule to check on availability
+    def validate_availability(self, data):
+        volunteer = data.get('volunteer')
+        dayofweek = data.get('dayofweek')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+
+        # Check availability
+        availability = VolunteerAvailability.objects.filter(
+            volunteer = volunteer,
+            dayofweek = dayofweek,
+            start_time__lte=start_time,
+            end_time__gte=end_time
+        ).exists()
+
+        if not availability:
+            raise serializers.ValidationError("Volunteer not available on requested date/time")
+        
+        # Check for planned full day absence at requested date/time
+        full_day_absence = VolunteerAvailability.objects.filter(
+            volunteer = volunteer,
+            start_time__lte=start_time,
+            end_time__gte=end_time,
+            start_time__isnull=True, # this should be null for full day absence
+            end_time__isnull=True # this should be null for full day absence
+        ).exists()
+
+        # If full day absence returns data then volunteer is absent at requested date/time
+        if full_day_absence:
+            raise serializers.ValidationError("Volunteer has planned absence during requested date/time")
+        
+        # Check for partial day absence at requested date/time
+        partial_absence = VolunteerAvailability.objects.filter(
+            volunteer = volunteer,
+            start_date__lte=end_date,
+            end_date__gte=start_date,
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        ).exists()
+
+        # If partial absence returns data, then volunteer is absence durign requested time of the day
+        if partial_absence:
+            raise serializers.ValidationError("Volunteer absent during requested time window of the selected day")
+        
+        return data
+
+# Serializer for VolunteerAbsence
+class VolunteerAbsenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerAbsence
+        fields = '__all__'
+
+# Serializer for Visit
+class VisitSerializer(serializers.ModelSerializer):
+    volunteer = VolunteerSerializer(read_only = True)
+    volunteer_id = serializers.PrimaryKeyRelatedField(
+        queryset = Volunteer.objects.all(),
+        source = 'volunteer',
+        write_only = True
+    )
+    schedule = VolunteerSerializer(read_only = True)
+    schedule_id = serializers.PrimaryKeyRelatedField(
+        queryset = VolunteerSchedule.objects.all(),
+        source = 'schedule',
+        write_only = True,
+        allow_null = True
+    )
+    class Meta:
+        model = Visit
+        fields = '__all__'
+

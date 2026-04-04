@@ -123,22 +123,20 @@ class Volunteer(models.Model):
     def __str__(self):
         return self.user  # Display the username
 
+# Model for day of week definition to be used across models
+class DayOfWeek(models.TextChoices):
+    MONDAY = "MON", _("Monday")
+    TUESDAY = "TUE", _("Tuesday")
+    WEDNESDAY = "WED", _("Wednesday")
+    THURSDAY = "THU", _("Thursday")
+    FRIDAY = "FRI", _("Friday")
+    SATURDAY = "SAT", _("Saturday")
+    SUNDAY = "SUN", _("Sunday")
 
 # Model to represent volunteer availability
 class VolunteerAvailability(models.Model):
     volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='availabilities')
-    class DayOfWeek(models.TextChoices):
-        MONDAY = "MON", _("Monday")
-        TUESDAY = "TUE", _("Tuesday")
-        WEDNESDAY = "WED", _("Wednesday")
-        THURSDAY = "THU", _("Thursday")
-        FRIDAY = "FRI", _("Friday")
-        SATURDAY = "SAT", _("Saturday")
-        SUNDAY = "SUN", _("Sunday")
-    dayofweek = models.CharField(
-        max_length=3,
-        choices=DayOfWeek.choices
-    )
+    dayofweek = models.CharField(max_length=3, choices=DayOfWeek.choices)
     start_time = models.TimeField()
     end_time = models.TimeField()
 
@@ -150,8 +148,8 @@ class VolunteerAbsence(models.Model):
     volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='absences')
     start_date = models.DateField()
     end_date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.volunteer.user} - Absence from {self.start_date} to {self.end_date} ({self.start_time} to {self.end_time})"  # Display the volunteer's username and absence details
@@ -161,18 +159,7 @@ class VolunteerSchedule(models.Model):
     volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='schedules')
     start_date = models.DateField()
     end_date = models.DateField()
-    class DayOfWeek(models.TextChoices):
-        MONDAY = "MON", _("Monday")
-        TUESDAY = "TUE", _("Tuesday")
-        WEDNESDAY = "WED", _("Wednesday")
-        THURSDAY = "THU", _("Thursday")
-        FRIDAY = "FRI", _("Friday") 
-        SATURDAY = "SAT", _("Saturday")
-        SUNDAY = "SUN", _("Sunday")
-    dayofweek = models.CharField(
-        max_length=3,
-        choices=DayOfWeek.choices
-    )
+    dayofweek = models.CharField(max_length=3, choices=DayOfWeek.choices)
     start_time = models.TimeField()
     end_time = models.TimeField()
 
@@ -182,7 +169,7 @@ class VolunteerSchedule(models.Model):
 # Model to represent a specific visit
 # TODO write a transaction that creates or removes a visit based on schedule and absence
 class Visit(models.Model):
-    visit_id = models.AutoField(primary_key=True)
+    schedule = models.ForeignKey(VolunteerSchedule, on_delete=models.SET_NULL, null=True, blank=True)
     visit_date = models.DateField()
     visit_start_time = models.TimeField()
     visit_end_time = models.TimeField()
