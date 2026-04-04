@@ -106,7 +106,7 @@ class Volunteer(models.Model):
     last_monthly_training_attended = models.DateField(blank=True, null=True)
     performance_eval_date = models.DateField(blank=True, null=True)
     team=models.CharField(max_length=1, blank=True)  # Team the volunteer belongs to
-    employed = models.BooleanField
+    employed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

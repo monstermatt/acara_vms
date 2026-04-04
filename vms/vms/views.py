@@ -47,57 +47,50 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     serializer_class = VolunteerSerializer
 
     # NOTE create and update are overridden here due to the presence of many to many and through table/models
+    
+    def extract_m2m(self, data):
+        return (
+            data.pop('skills', []),
+            data.pop('recognitions',[]),
+            data.pop('preferences',[]),
+            data.pop('languages',[])
+        )
 
-    def create(self, request):
-        # Extract data of many to many relationship models into separate lists
-        skills_data = request.data.pop('skils', [])
-        recognition_data = request.data.pop('recognitions', [])
-        preference_data = request.data.pop('preferences', [])
-        language_data = request.data.pop('languages',[])
-
-        serializer = self.get_serializer(data = request.data)
-        if serializer.is_valid():
-            volunteer = serializer.save()
-
+    def set_m2m(self, volunteer, skill_data, recognition_data, preference_data, language_data):
+        
             # Many to many fields
-            if skills_data:
-                volunteer.skills.set(skills_data)
+            if skill_data:
+                volunteer.skills.set(skill_data)
             if recognition_data:
                 volunteer.recognitions.set(recognition_data)
             if preference_data:
                 volunteer.preferences.set(preference_data)
             if language_data:
                 volunteer.languages.set(language_data)
+        
 
+    def create(self, request):
+        # Extract data of many to many relationship models into separate lists
+        skill_data, recognition_data, preference_data, language_data = self.extract_m2m(request.data)
+
+        serializer = self.get_serializer(data = request.data)
+        
+        if serializer.is_valid():
+            volunteer = serializer.save()
+            self.set_m2m(skill_data, recognition_data, preference_data, language_data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None):
-
-        # Since it's an update, first volunteer data is fetched
         volunteer = self.get_object()
 
         # Extract data of many to many relationship models into separate lists
-        skills_data = request.data.pop('skils', [])
-        recognition_data = request.data.pop('recognitions', [])
-        preference_data = request.data.pop('preferences', [])
-        language_data = request.data.pop('languages',[])
+        skill_data, recognition_data, preference_data, language_data = self.extract_m2m(request.data)
 
-
-        serializer = self.get_serializer(volunteer, data = request.data)
-
+        serializer = self.get_serializer(data = request.data)
+        
         if serializer.is_valid():
             volunteer = serializer.save()
-
-            # Many to many fields
-            if skills_data:
-                volunteer.skills.set(skills_data)
-            if recognition_data:
-                volunteer.recognitions.set(recognition_data)
-            if preference_data:
-                volunteer.preferences.set(preference_data)
-            if language_data:
-                volunteer.languages.set(language_data)
-
-            return Response(serializer.data)
+            set_m2m(skill_data, recognition_data, preference_data, language_data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

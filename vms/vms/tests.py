@@ -1,14 +1,14 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
-from rest_framework.response import Response
+from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from .models import User, Volunteer
 
 # Tests for the Volunteer APIs
 # Tests emulate and bypass frontend code
 
-# NOTE To run these tests, from the shell in the venv, run python manage.py test vms (optionally include the class name as needed)
-class VolunteerAPITests(TestCase):
+# NOTE To run these tests, from the shell in the venv, run:
+# python manage.py test vms (optionally include the class name as needed)
+class UserAPITests(APITestCase):
 
     # Set up for tests
     def SetUp(self):
@@ -43,10 +43,34 @@ class VolunteerAPITests(TestCase):
         self.assertTrue(User.objects.filter(username='volunteer1').exists())
 
     def test_view_user(self):
-        ...
+        response = self.client.get(f'/api/users/{self.user.pk}/')
+        self.assertEqual(response.status_code, 200)
 
     def test_update_user(self):
         ...
+
+
+class UserAPITests(APITestCase):
+
+    # Set up volunteer for tests
+    def SetUp(self):
+        self.client = APIClient()
+
+        # Adding add_user within setUp since all other tests will need a user
+        self.user = User.objects.create_user(
+            username ='admin2',
+            email = 'admin3@vmstest.com',
+            role = User.Role.ADMIN,
+            is_active = True
+        )
+
+        # Adding add_user within setUp since all other tests will need a user
+        self.user = User.objects.create_user(
+            username ='testvol1',
+            email = 'test_volunteer1@vmstest.com',
+            role = User.Role.VOLUNTEER,
+            is_active = True
+        )
 
     def test_add_volunteet(self):
         ...

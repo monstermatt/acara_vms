@@ -39,7 +39,12 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 # Serializer for the Volunteer model
 class VolunteerSerializer(serializers.ModelSerializer):
-    user = UserSerializer()  # Nested serializer for the related User model
+    user = UserSerializer(read_only=True)  # Nested serializer for the related User model
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source='user',
+        write_only=True  # accept user_id on POST/PUT
+    )
     skills = SkillSerializer(many=True, read_only=True)
     recognitions = RecognitionSerializer(many=True, read_only=True)
     preferences = VolunteeringPreferenceSerializer(many=True, read_only=True)
