@@ -1,7 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from .models import User, Volunteer
+from .models import User, Volunteer, VolunteerAvailability, VolunteerAbsence, VolunteerSchedule, Visit, Recognition, Skill, Language, VolunteeringPreference
 
 # Tests for the Volunteer APIs
 # Tests emulate and bypass frontend code
@@ -74,9 +74,34 @@ class VolunteerAPITests(APITestCase):
             is_active = True
         )
 
+        # Adding volunteer type within setUp for other tests
+        self.vol2 = User.objects.create_user(
+            username ='testvolunteer2',
+            email = 'test_volunteer2@vmstest.com',
+            role = User.Role.VOLUNTEER,
+            is_active = True
+        )
+
+        # Adding a test volunteer
+        self.volunteer = Volunteer.objects.create(
+            user=self.vol,
+            phone_number='650-111-1111',
+            address='test address',
+            age_group='AGEGROUP1',
+            gender='F'
+        )
+
+        # create availability
+        self.availability = VolunteerAvailability.objects.create(
+            volunteer=self.volunteer,
+            dayofweek='MON',
+            start_time='08:00:00',
+            end_time='17:00:00'
+        )
+
     def test_create_volunteer(self):
         response = self.client.post('/api/volunteers/', {
-            'user_id': self.vol.pk,
+            'user_id': self.vol2.pk,
             'phone_number': '111-111-1111',
             'address': 'test vol 1 address',
             'age_group': 'AGEGROUP1',
@@ -88,7 +113,7 @@ class VolunteerAPITests(APITestCase):
     def test_list_volunteers(self):
         # create a volunteer from the user created of volunteer type
         response = self.client.post('/api/volunteers/', {
-            'user_id': self.vol.pk,
+            'user_id': self.vol2.pk,
             'phone_number': '111-111-1111',
             'address': 'test vol 1 address',
             'age_group': 'AGEGROUP1',
@@ -98,13 +123,13 @@ class VolunteerAPITests(APITestCase):
         # list volunteers
         response = self.client.get('/api/volunteers/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 2)
         
 
     def test_update_volunteer(self):
         # create a volunteer 
         volunteer = Volunteer.objects.create(
-        user=self.vol,
+        user=self.vol2,
         phone_number='111-111-1111',
         address='test address',
         age_group='AGEGROUP1',
@@ -113,7 +138,7 @@ class VolunteerAPITests(APITestCase):
 
         # update that volunteer
         response = self.client.put(f'/api/volunteers/{volunteer.pk}/', {
-            'user_id': self.vol.pk,
+            'user_id': self.vol2.pk,
             'phone_number': '222-222-2222', 
             'address': 'changed address',
             'age_group': 'AGEGROUP2',
@@ -128,21 +153,71 @@ class VolunteerAPITests(APITestCase):
     
         # remove a volunteer by making a user of type volunteer as inactive
         # NOTE patch is used here instead of PUT since not all fields of user are updated
-        response = self.client.patch(f'/api/users/{self.vol.pk}/', {
+        response = self.client.patch(f'/api/users/{self.vol2.pk}/', {
             'is_active': False
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(User.objects.get(pk=self.vol.pk).is_active)
+        self.assertFalse(User.objects.get(pk=self.vol2.pk).is_active)
     
 
     def test_reactivate_volunteer(self):
     
         # remove a volunteer by making a user of type volunteer as inactive
-        response = self.client.patch(f'/api/users/{self.vol.pk}/', {
+        response = self.client.patch(f'/api/users/{self.vol2.pk}/', {
             'is_active': True
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(User.objects.get(pk=self.vol.pk).is_active)
+        self.assertTrue(User.objects.get(pk=self.vol2.pk).is_active)
 
     def test_create_availability(self):
-        ...
+        # create a volunteer 
+        volunteer = Volunteer.objects.create(
+        user=self.vol2,
+        phone_number='111-111-1111',
+        address='test address',
+        age_group='AGEGROUP1',
+        gender='M'
+        )
+
+        # add availability for volunteer
+        response = self.client.post('/api/availability/', {
+            'volunteer': volunteer.pk,
+            'dayofweek': 'TUE',
+            'start_time': '09:00:00',
+            'end_time': '18:00:00',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_list_availability(self):
+        # List for volunteer and availablity from setUp
+        response = self.client.get('/api/availability/', {'volunteer': self.volunteer.pk})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.availability.dayofweek, 'MON')
+
+    def test_create_schedule(self):
+        # Create schedule for volunteer created in setUo
+        response = self.client.post('/api/schedules/', {
+            'volunteer' : self.volunteer.pk,
+            'start_date' : '2026-04-01',
+            'end_date' :'2026-04-03',
+            'dayofweek' : 'MON',
+            'start_time' : '10:00:00',
+            'end_time' : '14:00:00'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_absence(self):
+        # Create absence for volunteer created in setUp
+        response = self.client.post('/api/absences/',{
+            'volunteer' : self.volunteer.pk,
+            'start_date' : '2026-04-05',
+            'end_date' :'2026-04-06',
+            'start_time' : '10:00:00',
+            'end_time' : '14:00:00'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_available_slots_in_a_day(self):
+        # list available slots in a day for a volunteer created in setUp
+        response = self.client.get(f'/api/volunteers/{self.volunteer.pk}/available-slots-in-a-day/?start_date=2026-05-01')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

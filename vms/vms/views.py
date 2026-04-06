@@ -167,7 +167,7 @@ class VolunteerScheduleViewSet(viewsets.ModelViewSet):
     
     # Override create to generate a visit for every schedule created
     def create(self, request):
-        serializer = self.get.serializer(data = request.data)
+        serializer = self.get_serializer(data = request.data)
         if serializer.is_valid():
             schedule = serializer.save()
             # auto generate a visit from the schedule
