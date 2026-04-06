@@ -1,8 +1,8 @@
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { signOut } from "next-auth/react"
+import { Dispatch, SetStateAction } from 'react';
 
 /* importing SVG icons*/
 import {
@@ -97,10 +97,14 @@ const SectionHeader = ({ title, collapsed, isFirst }: { title: string; collapsed
   );
 };
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  setCollapsed: Dispatch<SetStateAction<boolean>>;
+}
+
+export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
 
   const sidebarSections: SidebarSections[] = [
     {
@@ -187,7 +191,7 @@ export default function Sidebar() {
           label="Logout"
           icon={<LogoutIcon width={20} height={20} />}
           active={pathname === '/login'}
-          onClick={() =>signOut() } //automatically redirects to login page via api/auth/[...nextauth]/routes.ts pages
+          onClick={() => signOut() } //automatically redirects to login page via api/auth/[...nextauth]/routes.ts pages
           collapsed={collapsed}
         />
       </div>

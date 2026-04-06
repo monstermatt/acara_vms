@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { MessageIcon } from '@/icons';
-import { cpSync } from 'fs';
 
 
 // A template has an ID, a title and also a message body
