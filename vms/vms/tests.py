@@ -127,6 +127,7 @@ class VolunteerAPITests(APITestCase):
     def test_remove_volunteer(self):
     
         # remove a volunteer by making a user of type volunteer as inactive
+        # NOTE patch is used here instead of PUT since not all fields of user are updated
         response = self.client.patch(f'/api/users/{self.vol.pk}/', {
             'is_active': False
         })
@@ -142,3 +143,6 @@ class VolunteerAPITests(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(User.objects.get(pk=self.vol.pk).is_active)
+
+    def test_create_availability(self):
+        ...

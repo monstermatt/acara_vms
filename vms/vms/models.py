@@ -43,7 +43,6 @@ class User(AbstractUser):
 
 # Skills model to represent the types of skills
 class Skill(models.Model):
-    skill_id = models.AutoField(primary_key=True)
     skill_name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -51,7 +50,6 @@ class Skill(models.Model):
     
 # Language model to represent languages
 class Language(models.Model):
-    language_id = models.AutoField(primary_key=True)
     language_name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -60,7 +58,6 @@ class Language(models.Model):
 
 # Recognition model to represent the types of skills
 class Recognition(models.Model):
-    recognition_id = models.AutoField(primary_key=True)
     recognition_name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -68,7 +65,6 @@ class Recognition(models.Model):
 
 # Possible preferences of volunteering duties
 class VolunteeringPreference(models.Model):
-    pref_id = models.AutoField(primary_key=True)
     preference = models.CharField(max_length=100)
 
     def __str__(self):
@@ -98,7 +94,8 @@ class Volunteer(models.Model):
     
     age_group = models.CharField(
         max_length=9,
-        choices = AgeGroup.choices
+        choices = AgeGroup.choices,
+        blank = True
 
     )
     max_distance_preferred = models.PositiveIntegerField(blank=True, null=True)  # Distance in miles
@@ -117,11 +114,12 @@ class Volunteer(models.Model):
         
     gender = models.CharField(
         max_length=1,
-        choices=Gender.choices
+        choices=Gender.choices,
+        blank = True
     )
 
     def __str__(self):
-        return self.user  # Display the username
+        return self.user.username  # Display the username
 
 # Model for day of week definition to be used across models
 class DayOfWeek(models.TextChoices):
@@ -176,10 +174,11 @@ class Visit(models.Model):
     volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='visits')
     charted = models.BooleanField(default=False) # Remains false till user updates that they finished charting
     visited = models.BooleanField(default=False) # Remains false till user updates that they did visit the patient
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
 # Notification template model to represent the types of skills
 class Template(models.Model):
-    template_id = models.AutoField(primary_key=True)
     template_type = models.CharField(max_length=75)
     template_content = models.TextField()
 

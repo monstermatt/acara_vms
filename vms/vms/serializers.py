@@ -125,6 +125,12 @@ class VolunteerAbsenceSerializer(serializers.ModelSerializer):
         model = VolunteerAbsence
         fields = '__all__'
 
+# Serializer for Availability
+class VolunteerAvailabilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerAvailability
+        fields = '__all__'
+
 # Serializer for Visit
 class VisitSerializer(serializers.ModelSerializer):
     volunteer = VolunteerSerializer(read_only = True)
@@ -144,3 +150,9 @@ class VisitSerializer(serializers.ModelSerializer):
         model = Visit
         fields = '__all__'
 
+# Serializer for AvailabilitySlots
+class VolunteerAvailableSlotSerializer(serializers.Serializer):
+    dayofweek = serializers.CharField()
+    start_time = serializers.TimeField()
+    end_time = serializers.TimeField()
+    available_dates = serializers.ListField(child=serializers.DateField())
