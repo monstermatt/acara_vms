@@ -124,10 +124,9 @@ function TemplateModal({ mode, initialTitle = '', initialMessage = '', onSave, o
 // This is the Main page component 
 
 export default function MessagesPage() {
+  
   // All templates are now in state (later: fetch from Django API)
   const [templates, setTemplates] = useState<Template[]>(INITIAL_TEMPLATES);
-
-
 
   //setting of template IDs that are currently checked
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
