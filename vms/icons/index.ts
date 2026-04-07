@@ -14,6 +14,8 @@ export { default as HidePasswordIcon } from './fi-rr-eye-crossed.svg'
 export { default as UnhidePasswordIcon } from './fi-rr-eye-uncrossed.svg'
 export { default as BellIcon } from './fi-rr-bell.svg'
 export { default as FilterIcon } from './fi-rr-filter.svg'
+export { default as EditIcon } from './fi-rr-edit.svg'
+export { default as UserIcon } from './fi-rr-user.svg'
 
 /* Summary Card Icons */
 export { default as CalendarSummaryIcon } from './calendar_icon.svg'

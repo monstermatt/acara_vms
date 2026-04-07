@@ -3,11 +3,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-maroon: #9f0059;
+  --secondary-orange: #cd5000;
+  --background-alt: #f6f0eb;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary-maroon: var(--primary-maroon);
+  --color-secondary-orange: var(--secondary-orange);
+  --color-background-alt: var(--background-alt);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -81,9 +87,41 @@ body {
     @apply text-red-500 text-xs text-center;
   }
 
-  /* Volunteer Matching Styles */
+  /* Volunteer  Styles */
   .input-style {
     @apply border p-2 mr-2 rounded-full border border-gray-300 text-gray-700;
+  }
+
+  .main-container {
+    @apply min-h-screen p-10;
+  }
+
+  .info-card {
+    @apply bg-white p-10 rounded-3xl border border-gray-200;
+  }
+
+  .form-label {
+    @apply font-bold text-gray-900 mb-1 block;
+  }
+
+  .input-style {
+    @apply px-4 py-3 rounded-3xl border border-gray-300 text-gray-700 w-full focus:outline-none focus:ring-1 focus:ring-primary-maroon;
+  }
+
+  .page-header {
+    @apply text-3xl font-bold text-primary-maroon mb-1;
+  }
+
+  .section-header {
+    @apply text-xl font-bold text-primary-maroon mb-1;
+  }
+
+  .btn-save {
+    @apply px-8 py-2.5 rounded-full bg-primary-maroon text-white font-medium hover:opacity-90 transition-opacity;
+  }
+
+  .btn-cancel {
+    @apply px-8 py-2.5 rounded-full border border-primary-maroon text-primary-maroon font-medium hover:bg-gray-50 transition-colors;
   }
 
   .input-section {
