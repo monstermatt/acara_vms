@@ -10,6 +10,16 @@ export interface NestedPreference {
   pref_id: number;
   preference: string;
 }
+
+export type DayOfWeek = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
+
+export interface NestedAvailability {
+  id: number;
+  dayofweek:DayOfWeek | string;
+  start_time: string;
+  end_time: string;
+}
+
 export interface UserData {
   id: number;
   user: {
@@ -23,6 +33,7 @@ export interface UserData {
   skills: NestedSkill[];
   languages: NestedLanguage[];
   preferences: NestedPreference[];
+  availability: NestedAvailability[];
   max_distance_preferred: number;
   phone_number: string;
   sub_duty_preference: boolean;

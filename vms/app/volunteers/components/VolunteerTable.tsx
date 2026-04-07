@@ -38,7 +38,17 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
                     <span key={index}>{skill.skill_name}{index < volunteer.skills.length - 1 ? ", " : ""} </span>
                   ))}
                 </td>
-                <td>Pending</td>
+                <td>{volunteer.availability && volunteer.availability.length > 0 ? (
+                  <div>
+                    {volunteer.availability.map((avail) => (
+                      <span key = {avail.id}>
+                        {avail.dayofweek}: {avail.start_time} - {avail.end_time}
+                      </span>
+                    ))}
+                  </div>
+                ) : ( <span>No availability</span> )
+                } 
+                </td>
                 <td>{volunteer.languages?.map(lang => lang.language_name).join(", ")}</td>
                 <td>{volunteer.sub_duty_preference ? "Yes" : "No"}</td>
                 <td>

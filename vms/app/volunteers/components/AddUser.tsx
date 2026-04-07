@@ -24,6 +24,11 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
     max_distance_preferred: 0,
     address: "",
     age_group: "",
+    team: "",
+    assignement_preference: "",
+    availability_dayofweek: "",
+    availability_starttime:"",
+    availability_endtime:"",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -65,7 +70,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       if (!userResponse.ok) {
         const errorData = await userResponse.json().catch(() => null);
 
-        // console.error("DRF ERROR:", errorData);
+        console.error("DRF ERROR:", errorData);
 
         if (errorData && typeof errorData === 'object' && !errorData.detail) {
            const errorMessages = Object.entries(errorData)
@@ -105,6 +110,31 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       }
 
       const createdVolunteer = await volResponse.json();
+      const volunteerId = createdVolunteer.id || createdVolunteer.pk;
+
+      //Create Availability for the Volunteer
+      if (formData.availability_dayofweek && formData.availability_starttime && formData.availability_endtime) {
+        const availabilityPayload = {
+          volunteer: volunteerId,
+          dayofweek: formData.availability_dayofweek,
+          start_time: formData.availability_starttime,
+          end_time: formData.availability_endtime,
+        };
+
+        const availabilityResponse = await fetch("http://127.0.0.1:8000/api/availability/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` 
+          },
+          body: JSON.stringify(availabilityPayload),
+        });
+
+        if (!availabilityResponse.ok) {
+          const errorData = await availabilityResponse.json().catch(() => null);
+          throw new Error(errorData?.detail || `Failed to create Availability (Status: ${availabilityResponse.status})`);
+        }
+      }
 
       // Update Table without refetching.
       const completeUserData: UserData = {
@@ -164,23 +194,40 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
             <option value="AGEGROUP3">51+</option>
           </select>
           </div>
+
           <div className="flex gap-2">
-          <select className="input-style" name="gender" value={formData.gender} onChange={handleChange}>
-            <option value="">Select Gender</option>
-            <option value="F">Female</option>
-            <option value="M">Male</option>
-            <option value="O">Non-binary</option>
-          </select>
-          <select className='input-style' name = "team" value={formData.team}onChange={handleChange}>
-            <option value ="">Select Team</option>
-            <option value = "A">Team A</option>
-            <option value = "B">Team B</option>
-            <option value = "C">Team C</option>
-          </select>
+            <select className="input-style" name="gender" value={formData.gender} onChange={handleChange}>
+              <option value="">Select Gender</option>
+              <option value="F">Female</option>
+              <option value="M">Male</option>
+              <option value="O">Non-binary</option>
+            </select>
+            <select className='input-style' name = "team" value={formData.team}onChange={handleChange}>
+              <option value ="">Select Team</option>
+              <option value = "A">Team A</option>
+              <option value = "B">Team B</option>
+              <option value = "C">Team C</option>
+            </select>
           </div>
+
           </fieldset>
           <fieldset className="table-container">
+            <div>
             <h2 className="page-header">Additional Information</h2>
+            <select className="input-style w-full" name="availability_dayofweek" value={formData.availability_dayofweek} onChange={handleChange}>
+                <option value="">Select Day</option>
+                <option value="MON">Monday</option>
+                <option value="TUE">Tuesday</option>
+                <option value="WED">Wednesday</option>
+                <option value="THU">Thursday</option>
+                <option value="FRI">Friday</option>
+                <option value="SAT">Saturday</option>
+                <option value="SUN">Sunday</option>
+              </select>
+              <input className="input-style w-full" type="time" name="availability_starttime" value={formData.availability_starttime} onChange={handleChange} />
+              <input className="input-style w-full" type="time" name="availability_endtime" value={formData.availability_endtime} onChange={handleChange} />
+            </div>
+
             <h3>Special Skills</h3>
             <h3>Preferences</h3>
             <h3>Travel Distance</h3>
