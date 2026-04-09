@@ -116,7 +116,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         role: "VOLUN" 
       };
 
-      const userResponse = await fetch("http://127.0.0.1:8000/api/users/", {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(userPayload),
@@ -135,7 +135,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       
       if (selectedSkills.length > 0) {
         const skillPromises = selectedSkills.map(async (skillName) => {
-          const res = await fetch("http://127.0.0.1:8000/api/skills/", {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/skills/`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({ skill_name: skillName }),
@@ -158,7 +158,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       
       if (selectedLanguages.length > 0) {
         const languagePromises = selectedLanguages.map(async (languageName) => {
-          const res = await fetch("http://127.0.0.1:8000/api/languages/", {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/languages/`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({ language_name: languageName }),
@@ -190,7 +190,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         preferences: selectedPreferenceIds, // Make sure these IDs exist in Postgres
       };
 
-      const volResponse = await fetch("http://127.0.0.1:8000/api/volunteers/", {
+      const volResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(volunteerPayload),
@@ -203,7 +203,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       // Create Availability
       if (availabilities.length > 0) {
         await Promise.all(availabilities.map(async (slot) => {
-          await fetch("http://127.0.0.1:8000/api/availability/", {
+          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/availability/`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({
