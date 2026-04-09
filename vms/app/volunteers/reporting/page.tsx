@@ -1,5 +1,6 @@
 'use client';
 import AuditView from "@/app/components/AuditView";
+import AppointmentsView from "@/app/components/AppoitmentsView";
 import SummaryCard from "../../components/SummaryCard";
 
 import {CalendarSummaryIcon, ChartLateSummaryIcon, AppOnTimeSummaryIcon} from '@/icons'
@@ -19,7 +20,11 @@ export default function VolunteerReportingPage() {
       <SummaryCard title="Appointments on time (%)" value="75%" icon={<AppOnTimeSummaryIcon />} />
     </div>
 
-    <AuditView />
+    <div className="pl-8 pr-8 mb-15">
+      <AuditView />
+      <AppointmentsView />
+    </div>
+    
 
     
     </main>
