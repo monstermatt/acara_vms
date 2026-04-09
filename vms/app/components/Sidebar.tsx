@@ -116,7 +116,7 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
     {
       title: 'Volunteers',
       items: [
-        { label: 'Overview', icon: <VolunteersIcon width={20} height={20} />, path: '/volunteers/overview' },
+        { label: 'Volunteers', icon: <VolunteersIcon width={20} height={20} />, path: '/volunteers/overview' },
         { label: 'Matching', icon: <MatchingIcon width={20} height={20} />, path: '/volunteers/matching' },
         { label: 'Reporting', icon: <ReportingIcon width={20} height={20} />, path: '/volunteers/reporting' }
       ],

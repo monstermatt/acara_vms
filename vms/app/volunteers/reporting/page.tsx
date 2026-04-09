@@ -7,7 +7,7 @@ import {CalendarSummaryIcon, ChartLateSummaryIcon, AppOnTimeSummaryIcon} from '@
 
 export default function VolunteerReportingPage() {
   return (
-    <main className = "main-container">
+    <main>
     <div className="p-8">
       <h1 className="text-2xl font-bold text-[#9f0059] mb-4">Reporting</h1>
       <p className="text-gray-600">Here are today’s volunteer meetings and audit</p>

@@ -1,7 +1,6 @@
-import { AppOnTimeSummaryIcon } from "@/icons";
 import SummaryCard from "../components/SummaryCard";
 
-// import {CalendarSummaryIcon, AppOnTimeSummaryIcon, AppOnTimeSummaryIcon} from '@/icons'
+import {CalendarSummaryIcon, AppToDateIcon, AppOnTimeSummaryIcon} from '@/icons'
 
 export default function DashboardPage() {
   return (
@@ -12,9 +11,9 @@ export default function DashboardPage() {
       </div>
 
       <div className = 'flex gap-4 px-8'>
-        {/* <SummaryCard title="Appointments this month" value={480} icon={<CalendarSummaryIcon />} /> */}
-        {/*<SummaryCard title="Charted Late" value={120} icon={<AppOnTimeSummaryIcon />} /> */}
-        {/* <SummaryCard title="Appointments on time (%)" value="75%" icon={<AppOnTimeSummaryIcon />} /> */}
+        <SummaryCard title="Today's Appointments" value={480} icon={<CalendarSummaryIcon />} />
+        <SummaryCard title="Monthly Appointments to date" value={120} icon={<AppToDateIcon />} />
+        <SummaryCard title="Appointments on time" value="75%" icon={<AppOnTimeSummaryIcon />} />
       </div>
     </>
     
