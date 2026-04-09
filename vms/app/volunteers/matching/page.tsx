@@ -3,7 +3,7 @@ import { UserData } from "../types/volunteer";
 
 export default async function MatchingPage() {
   // Note: Using a full URL is required for server-side fetching
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
+  const res = await fetch("http://127.0.0.1:8000/api/volunteers/", {
     cache: "no-store", // Ensures fresh data is pulled on every request
   });
 
