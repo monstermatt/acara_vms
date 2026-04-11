@@ -72,7 +72,7 @@ class VolunteerScheduleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     # Custom validation for schedule to check on availability
-    def validate_availability(self, data):
+    def validate(self, data):
         volunteer = data.get('volunteer')
         dayofweek = data.get('dayofweek')
         start_time = data.get('start_time')
@@ -92,10 +92,10 @@ class VolunteerScheduleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Volunteer not available on requested date/time")
         
         # Check for planned full day absence at requested date/time
-        full_day_absence = VolunteerAvailability.objects.filter(
+        full_day_absence = VolunteerAbsence.objects.filter(
             volunteer = volunteer,
-            start_time__lte=start_time,
-            end_time__gte=end_time,
+            start_date__lte=end_date,
+            end_date__gte=start_date,
             start_time__isnull=True, # this should be null for full day absence
             end_time__isnull=True # this should be null for full day absence
         ).exists()
@@ -105,7 +105,7 @@ class VolunteerScheduleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Volunteer has planned absence during requested date/time")
         
         # Check for partial day absence at requested date/time
-        partial_absence = VolunteerAvailability.objects.filter(
+        partial_absence = VolunteerAbsence.objects.filter(
             volunteer = volunteer,
             start_date__lte=end_date,
             end_date__gte=start_date,
@@ -117,6 +117,18 @@ class VolunteerScheduleSerializer(serializers.ModelSerializer):
         if partial_absence:
             raise serializers.ValidationError("Volunteer absent during requested time window of the selected day")
         
+        # Check for overlapping schedule at requested date/time
+        overlapping_schedule = VolunteerSchedule.objects.filter(
+            volunteer=volunteer,
+            dayofweek=dayofweek,
+            start_date__lte=end_date,
+            end_date__gte=start_date,
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        ).exists()
+        if overlapping_schedule:
+            raise serializers.ValidationError("Volunteer already has a schedule during this time")
+
         return data
 
 # Serializer for VolunteerAbsence

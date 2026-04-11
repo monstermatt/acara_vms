@@ -2,6 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from .models import User, Volunteer, VolunteerAvailability, VolunteerAbsence, VolunteerSchedule, Visit, Recognition, Skill, Language, VolunteeringPreference
+from datetime import date, time
 
 # Tests for the Volunteer APIs
 # Tests emulate and bypass frontend code
@@ -221,3 +222,176 @@ class VolunteerAPITests(APITestCase):
         # list available slots in a day for a volunteer created in setUp
         response = self.client.get(f'/api/volunteers/{self.volunteer.pk}/available-slots-in-a-day/?start_date=2026-05-01')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+# Tests to ensure Volunteer Schedule Serializer works with all checks passing
+class VolunteerScheduleSerializerTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testvolunteer',
+            password='testpass123'
+        )
+        self.volunteer = Volunteer.objects.create(user=self.user)
+
+        self.availability = VolunteerAvailability.objects.create(
+            volunteer=self.volunteer,
+            dayofweek='MON',
+            start_time=time(9, 0),
+            end_time=time(17, 0)
+        )
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    #  test should succeed when booking visit within available hours
+    def test_valid_schedule_within_availability(self):
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'MON',
+            'start_time': '10:00:00',
+            'end_time': '12:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('valid schedule response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    # test should fail when booking visit outside available hours
+    def test_schedule_outside_availability_fails(self):
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'MON',
+            'start_time': '07:00:00', 
+            'end_time': '09:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('outside availability response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # test should fail when booking visit on day a volunteer is unavailable
+    def test_schedule_wrong_day_fails(self):
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'TUE', 
+            'start_time': '10:00:00',
+            'end_time': '12:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('wrong day response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # test should fail when booking overlaps an existing schedule
+    def test_overlapping_schedule_fails(self):
+        VolunteerSchedule.objects.create(
+            volunteer=self.volunteer,
+            dayofweek='MON',
+            start_time=time(10, 0),
+            end_time=time(12, 0),
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 8, 1),
+        )
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'MON',
+            'start_time': '11:00:00',
+            'end_time': '13:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('overlap response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # test should succeed when booking visit does not overlap an existing schedule
+    def test_non_overlapping_schedule_succeeds(self):
+        VolunteerSchedule.objects.create(
+            volunteer=self.volunteer,
+            dayofweek='MON',
+            start_time=time(10, 0),
+            end_time=time(12, 0),
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 8, 1),
+        )
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'MON',
+            'start_time': '13:00:00',
+            'end_time': '15:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('non overlap response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    #  test should fail when volunteer has a full day absence
+    def test_schedule_during_full_day_absence_fails(self):
+        VolunteerAbsence.objects.create(
+            volunteer=self.volunteer,
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 8, 1),
+            start_time=None, 
+            end_time=None,     
+        )
+
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'MON',
+            'start_time': '10:00:00',
+            'end_time': '12:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('full day absence response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # test should fail when volunteer has a partial absence which 
+    # overlaps the requested time
+    def test_schedule_during_partial_absence_fails(self):
+        VolunteerAbsence.objects.create(
+            volunteer=self.volunteer,
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 8, 1),
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+        )
+
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'MON',
+            'start_time': '10:00:00',
+            'end_time': '12:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('partial absence response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    #  test should succeed when schedule dates do not overlap absence dates
+    def test_schedule_outside_absence_period_succeeds(self):
+        VolunteerAbsence.objects.create(
+            volunteer=self.volunteer,
+            start_date=date(2026, 9, 1),    
+            end_date=date(2026, 12, 1),
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+        )
+
+        data = {
+            'volunteer': self.volunteer.id,
+            'dayofweek': 'MON',
+            'start_time': '10:00:00',
+            'end_time': '12:00:00',
+            'start_date': '2026-05-01',
+            'end_date': '2026-08-01',
+        }
+        response = self.client.post('/api/schedules/', data, format='json')
+        print('outside absence period response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
