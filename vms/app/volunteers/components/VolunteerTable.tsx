@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
 import { UserData } from "@/app/volunteers/types/volunteer";
-import { MessageIcon } from "@/icons";
+import { MessageIcon, CalendarIcon } from "@/icons";
+import BookingModal from "./BookingModal";
+import { User } from "next-auth";
+import { set } from "date-fns";
 
 const trStyle = { border: "1px solid #DEDEDE", background: "#FFF" };
 const tbodyStyle = { color: "#494949", fontFamily: "Quicksand", textAlign: "center" as const };
@@ -10,21 +13,70 @@ const tbodyStyle = { color: "#494949", fontFamily: "Quicksand", textAlign: "cent
 interface VolunteerTableProps {
   data: UserData[];
 }
+//default columns
+const DEFAULT_COLUMNS = {
+  phone: true,
+  gender: false,
+  skills: true,
+  schedule: true,
+  languages: false,
+  sub: false,
+  preferences: true,
+  distance: false,
+  team: false,
+};
 
 export default function VolunteerTable({ data }: VolunteerTableProps) {
-  //State to manage which columns are visible
-  const [columns, setColumns] = useState({
-    phone: true,
-    gender: true, 
-    skills: true,
-    schedule: false,   // Hidden by default
-    languages: false, // Hidden by default
-    sub: false,       // Hidden by default
-    preferences: true,
-    distance: false,  // Hidden by default
-  });
-
+  const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedVolunteer, setSelectedVolunteer] = useState<{ id: number; name: string } | null>(null);
+
+  //boooking modal handlers
+  const openBookingModal = (volunteer: UserData) => {
+    setSelectedVolunteer({
+      id: volunteer.id,
+      name: `${volunteer.user?.first_name} ${volunteer.user?.last_name}`,
+    });
+    setIsBookingModalOpen(true);
+  };
+
+  const closeBookingModal = () => {
+    setIsBookingModalOpen(false);
+    setSelectedVolunteer(null);
+  };
+
+  const handleBookingSuccess = () => {
+    console.log('Booking successful');
+  };
+
+  //Check if they have saved preferences from a previous visit
+  useEffect(() => {
+    setIsMounted(true);
+    const savedColumns = localStorage.getItem("volunteerTablePreferences");
+    
+    if (savedColumns) {
+      try {
+        setColumns(JSON.parse(savedColumns));
+      } catch (error) {
+        console.error("Could not load saved table preferences", error);
+      }
+    }
+  }, []);
+
+  //Save the preferences back to localStorage whenever they click a checkbox
+  useEffect(() => {
+    // Only save after the initial mount to prevent overwriting saved data with defaults
+    if (isMounted) {
+      localStorage.setItem("volunteerTablePreferences", JSON.stringify(columns));
+    }
+  }, [columns, isMounted]);
+
+  // This prevents the table from "flickering" from default columns to saved columns.
+  if (!isMounted) {
+    return <div className="p-8 text-center text-gray-400 font-medium">Loading table preferences...</div>;
+  }
 
   // Helper to toggle specific columns
   const toggleColumn = (colName: keyof typeof columns) => {
@@ -36,6 +88,15 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Render the Booking Modal */}
+      {isBookingModalOpen && selectedVolunteer && (
+        <BookingModal
+          volunteerId={selectedVolunteer.id}
+          volunteerName={selectedVolunteer.name}
+          onClose={closeBookingModal}
+          onSuccess={handleBookingSuccess}
+        />
+      )}
       
       {/*  Column Visibility Controls  */}
       <div className="flex justify-end relative">
@@ -51,7 +112,7 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
           <div className="absolute top-12 right-0 z-20 w-48 bg-white border border-gray-200 rounded-md shadow-lg p-3 flex flex-col gap-2">
             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Toggle Columns</h4>
             
-            {/* Map through our state to create checkboxes */}
+            {/* Map through state to create checkboxes */}
             {Object.keys(columns).map((key) => {
               const colKey = key as keyof typeof columns;
               // Format the key for the label (e.g., 'sub' -> 'Sub', 'distance' -> 'Distance')
@@ -90,6 +151,7 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
               {columns.sub && <th>Sub?</th>}
               {columns.preferences && <th>Preferences</th>}
               {columns.distance && <th>Travel Distance</th>}
+              {columns.team && <th>Team</th>}
               
               {/* Actions are always visible */}
               <th>Actions</th>
@@ -152,11 +214,19 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
                     <td className="py-2 px-4">{volunteer.max_distance_preferred ? `${volunteer.max_distance_preferred} mi` : "N/A"}</td>
                   )}
 
+                  {columns.team && <td className="py-2 px-4">{volunteer.team}</td>}
+
+
                   {/* Actions (Always Visible) */}
                   <td className="py-2 px-4">
                     <div className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#9F0059] transition-colors">
                       <MessageIcon />
                       <span className="text-sm font-medium">Message</span>
+                      <button onClick = {() => openBookingModal(volunteer)} className ="flex items-center gap-2">
+                        <CalendarIcon/>
+                        <span className="text-sm font-medium">Book</span>
+                      </button>
+
                     </div>
                   </td>
                 </tr>

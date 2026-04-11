@@ -23,6 +23,7 @@ export default function MatchingDashboard({ initialVolunteers }: MatchingDashboa
     languages: "",
     preferences: "",
     travelDistance: "",
+    team: "",
   });
 
   const filterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -32,8 +33,15 @@ export default function MatchingDashboard({ initialVolunteers }: MatchingDashboa
 
   const resetFilters = () => {
     setFilters({
-      name: "", gender: "", skill: "", schedule: "",
-      isSub: "", languages: "", preferences: "", travelDistance: "",
+      name: "",
+      gender: "",
+      skill: "",
+      schedule: "",
+      isSub: "",
+      languages: "",
+      preferences: "",
+      travelDistance: "",
+      team: "",
     });
   };
 
@@ -52,12 +60,15 @@ export default function MatchingDashboard({ initialVolunteers }: MatchingDashboa
       filters.travelDistance === "" ||
       volunteer.max_distance_preferred >= parseInt(filters.travelDistance);
 
+    const matchesTeam = filters.team === "" || volunteer.team === filters.team;
+
     return (
       fullName.toLowerCase().includes(filters.name.toLowerCase()) &&
       (volunteer.gender || "").toLowerCase().includes(filters.gender.toLowerCase()) &&
       matchesSkill &&
       matchesPreference &&
-      matchesDistance
+      matchesDistance &&
+      matchesTeam
     );
   });
 

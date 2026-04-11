@@ -116,7 +116,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         role: "VOLUN" 
       };
 
-      const userResponse = await fetch("http://127.0.0.1:8000/api/users/", {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(userPayload),
@@ -137,7 +137,9 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         const skillPromises = selectedSkills.map(async (skillName) => {
           const res = await fetch("http://127.0.0.1:8000/api/skills/", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}` },
             body: JSON.stringify({ skill_name: skillName }),
           });
           if (res.ok) {
@@ -203,7 +205,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       // Create Availability
       if (availabilities.length > 0) {
         await Promise.all(availabilities.map(async (slot) => {
-          await fetch("http://127.0.0.1:8000/api/availability/", {
+          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/availability/`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({
@@ -230,6 +232,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         phone_number: createdVolunteer.phone_number || formData.phone_number,
         max_distance_preferred: createdVolunteer.max_distance_preferred || formData.max_distance_preferred,
         sub_duty_preference: createdVolunteer.sub_duty_preference || false,
+        team: createdVolunteer.team || formData.team,
         // Map the strings back into the nested object format the table expects
         skills: selectedSkills.map((name, idx) => ({ skill_id: createdSkillIds[idx] || idx, skill_name: name })),
         languages: selectedLanguages.map((name, idx) => ({ language_id: createdLanguageIds[idx] || idx, language_name: name })),
@@ -373,8 +376,6 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
             <div className="grid grid-cols-1 gap-6 pt-6 border-t border-gray-100">
                 {/* Skills */}
                 <div className="mt-4 mb-2 col-span-full">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Special Skills</h3>
-                    <p className="text-sm text-gray-400 mb-3">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     {/*  Skills Grid  */}
                     <div className="mt-4 mb-2">
                         <h3 className="text-lg font-bold text-gray-900 mb-1">Special Skills</h3>
@@ -426,8 +427,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                 </div>
                 {/* Languages */}
                 <div className="mt-4 mb-2 col-span-full">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Other Languages</h3>
-                    <p className="text-sm text-gray-400 mb-3">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                    
                     {/*  LANGUAGES SECTION  */}
                     <div className="mt-4 mb-2">
                         <h3 className="text-lg font-bold text-gray-900 mb-1">Languages</h3>

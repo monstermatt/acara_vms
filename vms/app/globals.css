@@ -88,10 +88,6 @@ body {
   }
 
   /* Volunteer  Styles */
-  .input-style {
-    @apply border p-2 mr-2 rounded-full border border-gray-300 text-gray-700;
-  }
-
   .main-container {
     @apply min-h-screen p-10;
   }

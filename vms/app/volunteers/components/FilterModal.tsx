@@ -77,6 +77,18 @@ export default function FilterModal({ filters, onFilterChange, onClose, onReset 
               value={filters.skill}
               onChange={onFilterChange}
             />
+
+            <select
+              className="input-style mb-3 block w-full"
+              name="team"
+              value={filters.team}
+              onChange={onFilterChange}
+              >
+              <option value="">All teams</option>
+              <option value="A">Team A</option>
+              <option value="B">Team B</option>
+              <option value="C">Team C</option>
+            </select>
           </div>
 
           <div className="mt-4">

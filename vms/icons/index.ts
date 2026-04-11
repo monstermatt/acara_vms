@@ -16,6 +16,7 @@ export { default as BellIcon } from './fi-rr-bell.svg'
 export { default as FilterIcon } from './fi-rr-filter.svg'
 export { default as EditIcon } from './edit_icon.svg'
 export { default as UserIcon } from './fi-rr-user.svg'
+export { default as ClockIcon } from './fi-rr-clock.svg'
 
 /* Summary Card Icons */
 export { default as CalendarSummaryIcon } from './calendar_icon.svg'

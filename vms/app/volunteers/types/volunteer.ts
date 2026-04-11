@@ -37,4 +37,5 @@ export interface UserData {
   max_distance_preferred: number;
   phone_number: string;
   sub_duty_preference: boolean;
+  team: string;
 }
