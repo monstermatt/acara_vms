@@ -4,7 +4,8 @@ import { useState, useEffect, use } from "react";
 import { UserData } from "@/app/volunteers/types/volunteer";
 import { MessageIcon, CalendarIcon } from "@/icons";
 import BookingModal from "./BookingModal";
-import { User } from "next-auth";
+import { EditIcon, DeleteIcon } from "@/icons";
+import {  useSession } from "next-auth/react";
 import { set } from "date-fns";
 
 const trStyle = { border: "1px solid #DEDEDE", background: "#FFF" };
@@ -12,6 +13,8 @@ const tbodyStyle = { color: "#494949", fontFamily: "Quicksand", textAlign: "cent
 
 interface VolunteerTableProps {
   data: UserData[];
+  onDelete: (deletedIds: number[]) => void; 
+  onEdit: (id: number) => void;
 }
 //default columns
 const DEFAULT_COLUMNS = {
@@ -26,12 +29,15 @@ const DEFAULT_COLUMNS = {
   team: false,
 };
 
-export default function VolunteerTable({ data }: VolunteerTableProps) {
+export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTableProps) {
   const [columns, setColumns] = useState(DEFAULT_COLUMNS);
   const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedVolunteer, setSelectedVolunteer] = useState<{ id: number; name: string } | null>(null);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const {data: session} = useSession();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   //boooking modal handlers
   const openBookingModal = (volunteer: UserData) => {
@@ -86,6 +92,63 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
     }));
   };
 
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      // Select all available IDs
+      setSelectedRows(data.map((volunteer) => volunteer.id));
+    } else {
+      // Deselect all
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: number) => {
+    setSelectedRows((prev) => 
+      prev.includes(id) 
+        ? prev.filter((rowId) => rowId !== id) // Remove if already selected
+        : [...prev, id] // Add if not selected
+    );
+  };
+
+  // Handle Delete API Call
+  const handleDeleteSelected = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedRows.length} volunteer(s)?`)) return;
+    
+    setIsDeleting(true);
+    const token = (session as any)?.accessToken;
+
+    try {
+      // Execute DELETE requests for all selected IDs concurrently
+      const deletePromises = selectedRows.map(id => 
+        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/${id}/`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+      );
+
+      const responses = await Promise.all(deletePromises);
+      
+      // Check if any failed
+      const failed = responses.filter(res => !res.ok);
+      if (failed.length > 0) {
+        console.error("Some deletions failed");
+        alert("Failed to delete some records. Please check the console.");
+      }
+
+      // Update the parent state and clear selection
+      onDelete(selectedRows);
+      setSelectedRows([]);
+
+    } catch (error) {
+      console.error("Error deleting volunteers:", error);
+      alert("An error occurred while deleting.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {/* Render the Booking Modal */}
@@ -98,40 +161,67 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
         />
       )}
       
-      {/*  Column Visibility Controls  */}
-      <div className="flex justify-end relative">
-        <button
-          onClick={() => setIsColumnMenuOpen(!isColumnMenuOpen)}
-          className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 flex items-center gap-2"
-        >
-          <span>Display Columns</span>
-          <span className="text-xs">▼</span>
-        </button>
+      {/* Top Action Bar (Edit/Delete + Column Controls) */}
+      <div className="flex justify-end items-center relative">
+        
+        <div className="flex items-center gap-4">
+          {selectedRows.length > 0 && (
+            <div className="flex items-center gap-4 border-r pr-4 border-gray-300">
 
-        {isColumnMenuOpen && (
-          <div className="absolute top-12 right-0 z-20 w-48 bg-white border border-gray-200 rounded-md shadow-lg p-3 flex flex-col gap-2">
-            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Toggle Columns</h4>
-            
-            {/* Map through state to create checkboxes */}
-            {Object.keys(columns).map((key) => {
-              const colKey = key as keyof typeof columns;
-              // Format the key for the label (e.g., 'sub' -> 'Sub', 'distance' -> 'Distance')
-              const label = colKey.charAt(0).toUpperCase() + colKey.slice(1).replace(/([A-Z])/g, ' $1');
-              
-              return (
-                <label key={colKey} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                  <input
-                    type="checkbox"
-                    checked={columns[colKey]}
-                    onChange={() => toggleColumn(colKey)}
-                    className="w-4 h-4 text-[#9F0059] rounded border-gray-300 focus:ring-[#9F0059]"
-                  />
-                  <span className="text-sm text-gray-700">{label}</span>
-                </label>
-              );
-            })}
-          </div>
-        )}
+              {/*Show edit button only if exactly 1 row is selected */}
+              {selectedRows.length === 1 && (
+              <button
+              onClick={() => onEdit(selectedRows[0])}
+              className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                <EditIcon />
+                Edit
+              </button>
+            )}
+            {/* Show delete button if 1 or more rows are selected */}
+              <button
+              className="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors"
+              onClick={handleDeleteSelected}
+              disabled ={isDeleting}>
+                <DeleteIcon />
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+              <span className="text-xs text-gray-500">{selectedRows.length} selected</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right Side: Column Toggles */}
+        <div className="flex justify-end relative">
+          <button
+            onClick={() => setIsColumnMenuOpen(!isColumnMenuOpen)}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 flex items-center gap-2"
+          >
+            <span>Display Columns</span>
+            <span className="text-xs">▼</span>
+          </button>
+
+          {isColumnMenuOpen && (
+            <div className="absolute top-12 right-0 z-20 w-48 bg-white border border-gray-200 rounded-md shadow-lg p-3 flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Toggle Columns</h4>
+              {Object.keys(columns).map((key) => {
+                const colKey = key as keyof typeof columns;
+                const label = colKey.charAt(0).toUpperCase() + colKey.slice(1).replace(/([A-Z])/g, ' $1');
+                
+                return (
+                  <label key={colKey} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                    <input
+                      type="checkbox"
+                      checked={columns[colKey]}
+                      onChange={() => toggleColumn(colKey)}
+                      className="w-4 h-4 text-[#9F0059] rounded border-gray-300 focus:ring-[#9F0059]"
+                    />
+                    <span className="text-sm text-gray-700">{label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* table */}
@@ -139,6 +229,16 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
         <table className="w-full min-w-max">
           <thead className='thead'>
             <tr>
+              <th className = "px-4 py-2 text-center w-12">
+                <input
+                  type='checkbox'
+                  checked={data.length > 0 && selectedRows.length === data.length}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 rounded border-gray-300 accent-[#cd5000] cursor-pointer"
+                />
+              </th>
+            
+            
               {/* Name is always visible */}
               <th>Name</th>
               
@@ -161,6 +261,15 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
             {data.length > 0 ? (
               data.map((volunteer) => (
                 <tr key={volunteer.id} style={trStyle}>
+                  {/* Row Selection Checkbox */}
+                  <td className ="py-2 px-4 text-center">
+                    <input
+                      type='checkbox'
+                      checked={selectedRows.includes(volunteer.id)}
+                      onChange={() => handleSelectRow(volunteer.id)}
+                      className="w-4 h-4 rounded border-gray-300 accent-[#cd5000] cursor-pointer"
+                    />
+                  </td>
                   {/* Name (Always Visible) */}
                   <td className="py-2 px-4 font-medium text-gray-900">
                     {volunteer.user?.first_name} {volunteer.user?.last_name}
@@ -219,10 +328,10 @@ export default function VolunteerTable({ data }: VolunteerTableProps) {
 
                   {/* Actions (Always Visible) */}
                   <td className="py-2 px-4">
-                    <div className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#9F0059] transition-colors">
+                    <div className="flex items-center justify-center gap-2">
                       <MessageIcon />
                       <span className="text-sm font-medium">Message</span>
-                      <button onClick = {() => openBookingModal(volunteer)} className ="flex items-center gap-2">
+                      <button onClick = {() => openBookingModal(volunteer)} className ="flex items-center gap-2 cursor-pointer hover:text-[#9F0059] transition-colors">
                         <CalendarIcon/>
                         <span className="text-sm font-medium">Book</span>
                       </button>

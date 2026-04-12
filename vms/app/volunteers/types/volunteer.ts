@@ -12,6 +12,7 @@ export interface NestedPreference {
 }
 
 export type DayOfWeek = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
+export type AgeGroup = "AGEGROUP1" | "AGEGROUP2" | "AGEGROUP3";
 
 export interface NestedAvailability {
   id: number;
@@ -38,4 +39,6 @@ export interface UserData {
   phone_number: string;
   sub_duty_preference: boolean;
   team: string;
+  address: string;
+  age_group: AgeGroup | string;
 }

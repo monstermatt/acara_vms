@@ -22,6 +22,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [isAddingLanguage, setIsAddingLanguage] = useState(false);
   const [newLanguageInput, setNewLanguageInput] = useState("");
+  const [subDutyPreference, setSubDutyPreference] = useState(false);
   // State for Preferences Dropdown
   const [isPreferenceDropdownOpen, setIsPreferenceDropdownOpen] = useState(false);
   const [selectedPreferenceIds, setSelectedPreferenceIds] = useState<number[]>([]);
@@ -371,7 +372,9 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
             
             {/* Availabilities Grid Section  */}
             <div className="bg-[#f4f4f4] rounded-2xl p-6 mb-8 col-span-full">
-              <WeeklyScheduleBuilder onScheduleChange={setAvailabilities} />
+              <WeeklyScheduleBuilder
+              initialData = {availabilities}
+              onScheduleChange={setAvailabilities} />
             </div>
             <div className="grid grid-cols-1 gap-6 pt-6 border-t border-gray-100">
                 {/* Skills */}

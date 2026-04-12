@@ -16,6 +16,7 @@ export interface TimeSlot {
 
 interface WeeklyScheduleBuilderProps {
   onScheduleChange: (schedule: TimeSlot[]) => void;
+  initialData?: TimeSlot[]; // Optional prop to pre-populate the schedule
 }
 
 // Helper: Converts float (8.5) to Django time ("08:30:00")
@@ -31,21 +32,37 @@ const timeToFloat = (timeStr: string): number => {
   return hours + minutes / 60;
 };
 
-export default function WeeklyScheduleBuilder({ onScheduleChange }: WeeklyScheduleBuilderProps) {
-  // State holds an array of numeric handles for each day. 
-  // Example: [0, 6, 14, 17] means slots at 0:00-6:00 and 14:00-17:00
-  const [scheduleData, setScheduleData] = useState<Record<string, number[]>>({
-    MON: [0, 6],
-    TUE: [0, 6, 13, 16],
-    WED: [0, 6, 14, 15],
-    THU: [0, 6, 14, 15],
-    FRI: [0, 13],
-    SAT: [0, 6, 14, 15],
-    SUN: [14, 15],
-  });
+export default function WeeklyScheduleBuilder({ onScheduleChange, initialData =[] }: WeeklyScheduleBuilderProps) {
+  
+  const [scheduleData, setScheduleData] = useState<Record<string, number[]>>({});
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Convert initial incoming data into the format the sliders need
+  useEffect(() => {
+    if (initialData.length > 0 && !hasInitialized) {
+      const parsedData: Record<string, number[]> = {};
+      
+      initialData.forEach((slot) => {
+        const day = slot.dayofweek as string;
+        const startFloat = timeToFloat(slot.start_time);
+        const endFloat = timeToFloat(slot.end_time);
+        
+        if (!parsedData[day]) {
+          parsedData[day] = [];
+        }
+        
+        parsedData[day].push(startFloat, endFloat);
+        // Ensure they stay sorted from earliest to latest so the slider handles don't cross
+        parsedData[day].sort((a, b) => a - b); 
+      });
+
+      setScheduleData(parsedData);
+      setHasInitialized(true);
+    }
+  }, [initialData, hasInitialized]);
 
   // Whenever the internal slider state changes, convert it back to the flat 
-  // array of objects your Django API expects and send it to the parent.
+  // array of objects django API expects and send it to the parent.
   useEffect(() => {
     const apiFormattedSchedule: TimeSlot[] = [];
     Object.entries(scheduleData).forEach(([day, handles]) => {
@@ -83,7 +100,6 @@ export default function WeeklyScheduleBuilder({ onScheduleChange }: WeeklySchedu
     setScheduleData((prev) => ({ ...prev, [day]: [] }));
   };
 
-  // --- STYLING ---
   // This generates the styles to make every *other* segment invisible
   const getTrackStyle = (values: number[]) => {
     return Array.from({ length: values.length - 1 }).map((_, i) => {
