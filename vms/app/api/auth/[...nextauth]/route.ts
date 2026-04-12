@@ -1,5 +1,8 @@
+import next from "next";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import {NextRequest} from "next/server";
+
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -66,5 +69,31 @@ export const authOptions: NextAuthOptions = {
 
 //Pass the options into NextAuth
 const handler = NextAuth(authOptions);
+// Intercept the POST request to prevent NextAuth from running JSON.parse on form data
+export async function POST(req: Request, ctx: { params: { nextauth: string[] } }) {
+  const clonedReq = req.clone();
+  
+  // If the request is mistakenly flagged as JSON, we intercept and fix the header
+  if (clonedReq.headers.get("content-type")?.includes("application/json")) {
+     const text = await clonedReq.text();
+     
+     // Rebuild the request with the correct Content-Type so NextAuth parses it as URL-encoded
+     const newReq = new Request(clonedReq.url, {
+         method: 'POST',
+         headers: {
+             ...Object.fromEntries(clonedReq.headers),
+             "content-type": "application/x-www-form-urlencoded",
+         },
+         body: text
+     });
 
-export { handler as GET, handler as POST };
+     const nextReq = new NextRequest(newReq);
+
+     return handler(nextReq, ctx);
+  }
+
+  return handler(req, ctx);
+}
+
+export { handler as GET, };
+

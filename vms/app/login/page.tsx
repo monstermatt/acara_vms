@@ -1,6 +1,7 @@
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import {useSearchParams} from 'next/navigation';
 import Login from './components/Login'
 import ForgotPassword from './components/ForgotPassword'
 import AccountSetup from './components/AccountSetup'
@@ -8,11 +9,19 @@ import AccountSetup from './components/AccountSetup'
 
 type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
-export default function LoginPage() {
+function LoginContent() {
   const [view, setView] = useState<LoginView>('login')
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const uid = searchParams.get('uid');
+    const token = searchParams.get('token');
+    if (uid && token) {
+      setView('accountsetup');
+    }
+  }, [searchParams]);
 
   return (
-
     <div className="flex h-screen">
 
       {/* Left half page image */}
@@ -58,6 +67,16 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
- 
-  )
+  );
 }
+
+// Next.js App Router requires useSearchParams to be wrapped in a Suspense boundary
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
+
+}
+

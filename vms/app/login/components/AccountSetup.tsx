@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { UnhidePasswordIcon, HidePasswordIcon } from '@/icons';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
@@ -15,20 +16,34 @@ const AccountSetup = ({ setView, mode = 'new' }: Props) => {
     const [showPassword, setShowPassword] = useState(false)
     const [success, setSuccess] = useState(false)
     const [error, setError] = useState('')
+    const searchParams = useSearchParams();
+    const uid = searchParams.get('uid');
+    const token = searchParams.get('token');
 
-    const submitSetup = (e: React.SyntheticEvent) => {
+    const submitSetup = async (e: React.SyntheticEvent) => {
         e.preventDefault()
         if (password != confirmPassword) {
             setError('Passwords do not match')
             return
         }
+    //Django token verification and password reset API call
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/confirm-password-reset/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({uid, token, password}),
+    })
+    if (res.ok) {
+        setSuccess(true);
+    } else {
+        setError('Failed to reset password. Please try again.')
+    }
 
-        // Placeholder for better password strength logic
-        if (password.length < 5) {
-            setError('Password must be at least 5 characters')
-            return
-        }
-        setSuccess(true)
+    // Placeholder for better password strength logic
+    if (password.length < 5) {
+        setError('Password must be at least 5 characters')
+        return
+    }
+    setSuccess(true)
     }
 
     // Show/hide password button
