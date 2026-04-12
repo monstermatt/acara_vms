@@ -10,11 +10,36 @@ interface Props {
 const ForgotPassword = ({ setView }: Props) => {
     const [resetEmail, setResetEmail] = useState('')
     const [submitted, setSubmitted] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false) //loading state to disable button while network request processes
 
-    const submitPasswordReset = (e: React.SyntheticEvent) => {
+    const submitPasswordReset = async (e: React.SyntheticEvent) => {
         e.preventDefault()
         setSubmitted(true)
+
+        try {
+            // Call the API route 
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: resetEmail }),
+            });
+
+            if (!response.ok) {
+                console.warn("There was an issue hitting the forgot-password endpoint.");
+            }
+
+            //show the success screen even if the email doesn't exist in the database.
+            setSubmitted(true)
+        } catch (error) {
+            console.error("Network error when attempting to send reset email:", error);
+            setSubmitted(true) 
+        } finally {
+            setIsSubmitting(false)
+        }
     }
+    
 
     // Password Reset Success view
     if (submitted) {

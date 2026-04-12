@@ -556,6 +556,33 @@ const handleSave = async () => {
     if (!userResponse.ok) throw new Error("Failed to create base user.");
     const createdUser = await userResponse.json();
 
+    if (role === 'VOLUN') {
+      const volunteerPayload ={
+        user_id: createdUser.id,
+        phone_number: "555-555-5555",
+        address: "TBD",
+        };
+        
+        try {
+          const volResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(volunteerPayload),
+          });
+
+          if (!volResponse.ok) {
+          console.warn("Base user created, but Volunteer profile failed:", await volResponse.text());
+          } else {
+            console.log("Volunteer profile successfully linked to user.");
+          }
+        } catch (volErr) {
+          console.error("Network error while creating Volunteer profile:", volErr);
+        }
+      }
+
     try{
       const emailResponse = await fetch('http://localhost:3000/api/auth/forgot-password/', {
         method: 'POST',
@@ -715,6 +742,34 @@ const {data: session } = useSession(); // set variable for the session to get th
       if (!response.ok) throw new Error(`Failed to update user. (Status: ${response.status})`);
 
       const updatedUser = await response.json()
+
+      // Only fire this if they are set to Volunteer AND weren't a Volunteer before
+      if (role === 'VOLUN' && user.role !== 'VOLUN') {
+        const volunteerPayload = {
+          user_id: user.id, 
+          phone_number: "555-555-5555", // Placeholders for required fields
+          address: "TBD",
+        };
+
+        try {
+          const volResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(volunteerPayload),
+          });
+
+          if (!volResponse.ok) {
+            console.warn("User updated, but Volunteer profile creation failed:", await volResponse.text());
+          } else {
+            console.log("New Volunteer profile successfully linked to the updated user.");
+          }
+        } catch (volErr) {
+          console.error("Network error while creating Volunteer profile:", volErr);
+        }
+      }
 
       onSave({
         ...user,

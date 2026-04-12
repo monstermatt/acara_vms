@@ -130,6 +130,23 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       }
       const createdUser = await userResponse.json();
 
+      try{
+      const emailResponse = await fetch('http://localhost:3000/api/auth/forgot-password/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({email: createdUser.email}), // send the email to trigger the password setup flow
+        });
+        if (!emailResponse.ok) {
+          console.warn( "User created but email endpoint returned an error:", await emailResponse.text());
+        } else {
+          console.log("Password setup email triggered successfully for", createdUser.email);
+        }
+      }catch (emailErr) {
+        console.error("Network error while triggering password setup email:", emailErr);
+      }
+
       //Create Skills and get their IDs
       // Django's .set() requires primary keys, so we must turn our string array into an ID array
       let createdSkillIds: number[] = [];

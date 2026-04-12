@@ -70,7 +70,7 @@ function LoginContent() {
   );
 }
 
-// Next.js App Router requires useSearchParams to be wrapped in a Suspense boundary
+// Next App router requires useSearchParams to be wrapped in a suspense boundary
 export default function LoginPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
