@@ -339,7 +339,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                 {/* Phone Number */}
                 <div className="flex flex-col gap-1 col-span-full">
                   <label className="form-label" htmlFor="phone_number">Phone Number</label>
-                  <input className="input-style" type="text" name="phone_number" placeholder="Phone Number" value={formData.phone_number} onChange={handleChange} />
+                  <input required className="input-style" type="text" name="phone_number" placeholder="Phone Number" value={formData.phone_number} onChange={handleChange} />
                 </div>
                 {/* Gender */}
                 <div className="flex flex-col gap-1">
@@ -544,7 +544,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                 <div className="grid grid-cols-2 gap-4 col-span-full">
                     <div className="flex flex-col gap-1">
                         <label className="form-label" htmlFor="address">Address</label>
-                        <input className="input-style" type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} />
+                        <input required className="input-style" type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="form-label" htmlFor="max_distance_preferred">Max Travel Distance (miles)</label>
