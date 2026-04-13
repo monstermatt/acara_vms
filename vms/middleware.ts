@@ -15,9 +15,13 @@ export default withAuth(
                 const path = req.nextUrl.pathname;
                 const userRole = token.role;
 
-                // if (path.startsWith("/settings")) { //prevents non-admins fromaccessing settings, this is mostly for testing. comment this IF out to access the page without ADMIN role
-                //     return userRole === "ADMIN";
-                // }
+                if (path.startsWith("/settings")) { //prevents non-admins fromaccessing settings, this is mostly for testing. comment this IF out to access the page without ADMIN role
+                    return userRole === "ADMIN";
+                }
+
+                if (path.startsWith("/volunteers") || path.startsWith("/dashboard") || path.startsWith("/calendar")) {
+                    return userRole === "COORD" || userRole === "ADMIN";
+                }
 
                 return true; //allow unprotected routes to be accessed
             }
@@ -27,9 +31,9 @@ export default withAuth(
 //list of routes to put behind authentication, in case we ever want to have /training or something publicly availble.
 export const config = {
     matcher: [
-        // "/dashboard/:path*",
-        // "/settings/:path*",
-        // "/volunteers/:path*",
-        // "/calendar/:path*",
+        "/dashboard/:path*",
+        "/settings/:path*",
+        "/volunteers/:path*",
+        "/calendar/:path*",
     ]
 }
