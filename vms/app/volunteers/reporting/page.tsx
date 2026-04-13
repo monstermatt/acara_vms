@@ -22,11 +22,8 @@ export default function VolunteerReportingPage() {
 
     <div className="pl-8 pr-8 mb-15">
       <AuditView />
-      <AppointmentsView />
+      
     </div>
-    
-
-    
     </main>
   );
 }

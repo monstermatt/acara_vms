@@ -8,34 +8,21 @@ import { StatusDropdown } from './Utils/AppoitmentStatusDropdown';
 import { EditIcon, DeleteIcon } from '@/icons';
 
 // Appointment template interface
-interface AppointmentTemplate {
+export interface AppointmentTemplate {
   id: number;
   volunteer_name: string;
   volunteer_phone: string;
-  appoitment_time: string;
+  appointment_time: string;
   appointment_status: string;
 }
 
-// MARK: - Replace with data from API once backend is ready
-const INITIAL_TEMPLATES: AppointmentTemplate[] = [
-  {
-    id: 1,
-    volunteer_name: 'Jonh Black',
-    volunteer_phone: '123-456-7890',
-    appoitment_time: '2023-10-01 10:00',
-    appointment_status: '',
-  },
-  {
-    id: 2,
-    volunteer_name: 'Emily White',
-    volunteer_phone: '098-765-4321',
-    appoitment_time: '2023-10-02 14:00',
-    appointment_status: '',
-  },
-];
 
-export default function AppointmentsView() {
-  const [templates, setTemplates] = useState<AppointmentTemplate[]>(INITIAL_TEMPLATES);
+interface AppointmentsViewProps {
+  schedules: AppointmentTemplate[];
+}
+
+export default function AppointmentsView(props: AppointmentsViewProps) {
+  const [templates, setTemplates] = useState<AppointmentTemplate[]>(props.schedules);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [searchText, setSearchText] = useState('');
 
@@ -187,7 +174,7 @@ export default function AppointmentsView() {
 
                     <td className="px-4 py-4 text-gray-500">{template.volunteer_phone}</td>
 
-                    <td className="px-4 py-4 text-gray-500">{template.appoitment_time}</td>
+                    <td className="px-4 py-4 text-gray-500">{template.appointment_time}</td>
 
                     <td className="px-4 py-4">
                       <StatusDropdown
