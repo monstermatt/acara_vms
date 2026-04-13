@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser # To extend the default User
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+""" # User Embedding model
+from pgvector.django import VectorField """
 
 # TODO : Add constraints across all tables as needed
 
@@ -185,3 +187,11 @@ class Template(models.Model):
     def __str__(self):
         return self.template_type # Display the template type
     
+""" # Model to represent volunteer embeddings for enhanced matching
+class UserEmbedding(models.Model):
+    volunteer = models.OneToOneField(Volunteer, on_delete=models.CASCADE, related_name='embedding')
+    embedding = VectorField(dimensions=384)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Embedding for {self.volunteer}" """

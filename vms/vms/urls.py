@@ -14,6 +14,8 @@ router.register(r'availability', views.VolunteerAvailabilityViewSet)
 router.register(r'schedules', views.VolunteerScheduleViewSet)
 router.register(r'absences', views.VolunteerAbsenceViewSet)
 router.register(r'visits', views.VisitViewSet)
+# Route for AI matching feature
+router.register(r'matchingbeta', views.MatchingBetaViewSet, 'matchingbeta')
 
 
 urlpatterns = [

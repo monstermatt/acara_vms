@@ -28,6 +28,13 @@ load_dotenv()
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
+# AI matching reqs
+AI_SERVICE = os.getenv('AI_PROVIDER', 'bedrock')
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+BEDROCK_MODEL_ID = os.getenv('BEDROCK_MODEL_ID', 'amazon.nova-lite-v1:0')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

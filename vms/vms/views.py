@@ -21,6 +21,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
+#AI MATCHING
+from .embed import match_volunteers, rebuild_embeddings
+from django.http import StreamingHttpResponse
 
 # Create your views here.
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -220,3 +223,43 @@ def confirm_password_reset(request):
         return Response({'message': 'Password reset successful.'}, status=200)
     else:
         return Response({'error': 'Invalid or expired token.'}, status=400)
+
+# View for AI Matching feature
+class MatchingBetaViewSet(viewsets.ViewSet):
+
+    @action(detail=False, methods=['post'], url_path='match-volunteers')
+    def match_volunteers(self, request):
+        user_request = request.data.get('request')
+
+        if not user_request:
+            return Response ({'error': 'User request is required'}, status=400)
+        
+        # Attempting to stream responses for UI flow
+        def stream_matches():
+            try: 
+                results = match_volunteers(user_request)
+                for match in results:
+                    yield f"data: {json.dumps({'match': match})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+        return StreamingHttpResponse(
+            stream_matches(),
+            content_type='text/event-stream'
+        )
+
+    @action(detail=False, methods=['post'], url_path='rebuild-embeddings')
+    def rebuild_options(self, request): 
+        rebuild_all = request.data.get('rebuild_all', False) 
+        volunteer_ids = request.data.get('volunteer_ids', None)
+        try:
+            results = rebuild_embeddings(rebuild_all=rebuild_all, volunteer_ids=volunteer_ids)
+            return Response({
+                'message': 'Embeddings rebuilt successfully',
+                'total': results['total'],
+                'success': results['success'],
+                'failed': results['failed'],
+                'skipped': results['skipped']
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
