@@ -140,14 +140,16 @@ class VolunteerViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def update(self, request, pk=None):
+    def update(self, request, pk=None, **kwargs):
+
+        partial = kwargs.pop('partial', False)
         volunteer = self.get_object()
 
         # Extract data of many to many relationship models into separate lists
         data_copy = request.data.copy()
         skill_data, recognition_data, preference_data, language_data = self.extract_m2m(data_copy)
 
-        serializer = self.get_serializer(volunteer, data = data_copy)
+        serializer = self.get_serializer(volunteer, data = data_copy, partial=partial)
         
         if serializer.is_valid():
             volunteer = serializer.save()
