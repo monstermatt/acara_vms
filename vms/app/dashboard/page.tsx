@@ -3,48 +3,26 @@ import SummaryCard from "../components/SummaryCard";
 import {CalendarSummaryIcon, AppToDateIcon, AppOnTimeSummaryIcon} from '@/icons'
 import AppointmentsView from "../components/AppoitmentsView";
 
-import { UserData } from "../volunteers/types/volunteer";
-import { VolunteerSchedule } from "../volunteers/types/schedule";
-import { AppointmentTemplate } from "../components/AppoitmentsView";
+import { VolunteerVisit } from "../volunteers/types/visits";
 
 
 export default async function DashboardPage() {
-  const [volRes, schedulesRes] = await Promise.all([
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
-      cache: "no-store",
-    }),
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/schedules`, {
+  const [volRes] = await Promise.all([
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/visits`, {
       cache: "no-store",
     }),
   ]);
 
-  if (!volRes.ok || !schedulesRes.ok) {
+  if (!volRes.ok) {
+    console.error("Failed to fetch data for dashboard");
     return <div className="p-8 text-center text-red-500">Error Loading: Danger Will Robinson</div>;
+  }else{
+    console.log("Successfully fetched data for dashboard");
   }
 
-  const volunteerData: UserData[] = await volRes.json();
-  const schedulesData: (VolunteerSchedule & { volunteer: number })[] = await schedulesRes.json();
+  const visitsData: VolunteerVisit[] = await volRes.json();
 
-  type VolunteerWithSchedules = UserData & {
-  schedules: (VolunteerSchedule & { volunteer: number })[];
-};
-
-const mergedVolunteers: VolunteerWithSchedules[] = volunteerData
-  .map((vol) => ({
-    ...vol,
-    schedules: schedulesData.filter((sched) => sched.volunteer === vol.id),
-  }))
-  .filter((vol) => vol.schedules.length > 0);
-
-  const appointments: AppointmentTemplate[] = mergedVolunteers.flatMap((vol) =>
-    vol.schedules.map((sched) => ({
-      id: sched.id,
-      volunteer_name: `${vol.user.first_name} ${vol.user.last_name}`,
-      volunteer_phone: vol.phone_number,
-      appointment_time: sched.start_time,
-      appointment_status: "",
-    }))
-  );
+  console.log("Visits Data:", visitsData);
 
   return (
     <>
@@ -60,7 +38,7 @@ const mergedVolunteers: VolunteerWithSchedules[] = volunteerData
       </div>
 
       <div className="p-8 mb-15">
-        <AppointmentsView schedules={appointments} />
+        <AppointmentsView visits={visitsData} />
       </div>
 
     </>
