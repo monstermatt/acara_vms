@@ -1,16 +1,17 @@
 from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import MyTokenObtainPairSerializer, UserSerializer, VolunteerSerializer, SkillSerializer, RecognitionSerializer, LanguageSerializer, VolunteeringPreferenceSerializer, VolunteerAbsenceSerializer, VolunteerScheduleSerializer, VisitSerializer, VolunteerAvailabilitySerializer, VolunteerAvailableSlotSerializer
+from .serializers import MyTokenObtainPairSerializer, UserSerializer, VolunteerSerializer, SkillSerializer, RecognitionSerializer, LanguageSerializer, VolunteeringPreferenceSerializer, VolunteerAbsenceSerializer, VolunteerScheduleSerializer, VisitSerializer, VolunteerAvailabilitySerializer, VolunteerAvailableSlotSerializer, SendEmailSerializer
 from rest_framework import serializers, viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 import json
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from vms.models import User, Volunteer, VolunteerAbsence, VolunteerAvailability, Visit, VolunteeringPreference, VolunteerSchedule, Recognition, Skill, Language
-from .utils import generate_visits, compute_available_slots_in_a_day
+from .utils import generate_visits, compute_available_slots_in_a_day, send_email
 from rest_framework.decorators import action
 from datetime import datetime
 #for email verification and password reset
@@ -265,3 +266,22 @@ class MatchingBetaViewSet(viewsets.ViewSet):
             })
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+# View for sending email
+class SendEmailView(APIView):
+    def post(self, request):
+        serializer = SendEmailSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        success = send_email(
+            recipient=data['recipient_id'],
+            subject=data['subject'],
+            message=data['message'],
+        )
+
+        if success:
+            return Response({'detail': 'Email sent successfully.'}, status=status.HTTP_200_OK)
+        return Response({'error': 'Failed to send email.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,6 +1,92 @@
+import logging
+import os
+import uuid
 from datetime import timedelta
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 from django.db import models
-from .models import Visit, VolunteerAbsence, VolunteerAvailability
+from django.utils import timezone
+from .models import Visit, VolunteerAbsence, VolunteerAvailability, Notification
+
+logger = logging.getLogger(__name__)
+
+
+def _dump_email(sender: str, recipient: str, subject: str, message: str) -> str:
+    """
+    Write the email content to a .eml file under EMAIL_DUMP_PATH.
+
+    Returns the absolute file path on success, or an empty string if
+    EMAIL_DUMP_PATH is not configured or the write fails.
+    """
+    dump_dir = getattr(settings, 'EMAIL_DUMP_PATH', '').strip()
+    if not dump_dir:
+        return ''
+
+    try:
+        os.makedirs(dump_dir, exist_ok=True)
+        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{uuid.uuid4().hex[:8]}.eml"
+        path = os.path.join(dump_dir, filename)
+
+        content = (
+            f"From: {sender}\r\n"
+            f"To: {recipient}\r\n"
+            f"Subject: {subject}\r\n"
+            f"Date: {timezone.now().isoformat()}\r\n"
+            f"\r\n"
+            f"{message}"
+        )
+        with open(path, 'w', encoding='utf-8') as fh:
+            fh.write(content)
+
+        return path
+    except Exception as exc:
+        logger.error("Failed to dump email to disk | error: %s", exc)
+        return ''
+
+
+def send_email(recipient: str, subject: str, message: str) -> bool:
+    """
+    Send an email. Returns True on success, False on failure.
+
+    On success the call also:
+    - writes a .eml dump to EMAIL_DUMP_PATH
+    - records sender, recipient_id, subject, date_sent, and dump_path
+      in the Notification table
+
+    Args:
+        recipient: Destination email address.
+        subject:   Email subject line.
+        message:   Email body.
+    """
+    sender = settings.DEFAULT_FROM_EMAIL
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=message,
+        from_email=sender,
+        to=[recipient.email],
+    )
+    try:
+        msg.send()
+        logger.info("Email sent to %s | subject: %s", recipient, subject)
+
+        dump_path = _dump_email(
+            sender=sender,
+            recipient=recipient.email,
+            subject=subject,
+            message=message,
+        )
+        Notification.objects.create(
+            sender=sender,
+            recipient_id=recipient,
+            subject=subject,
+            dump_path=dump_path,
+        )
+
+        return True
+    except Exception as exc:
+        logger.error("Failed to send email to %s | subject: %s | error: %s", recipient, subject, exc)
+        return False
 
 def generate_visits(schedule):
     # day of week mapped  to a number

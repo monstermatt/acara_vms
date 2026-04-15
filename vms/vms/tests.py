@@ -1,7 +1,9 @@
 from django.test import TestCase
 from rest_framework.test import APIClient, APITestCase
-from rest_framework import status
-from .models import User, Volunteer, VolunteerAvailability, VolunteerAbsence, VolunteerSchedule, Visit, Recognition, Skill, Language, VolunteeringPreference
+from rest_framework import response, status
+from unittest.mock import patch
+from .models import User, Volunteer, VolunteerAvailability, VolunteerAbsence, VolunteerSchedule, Visit, Recognition, Skill, Language, VolunteeringPreference, Notification
+from .utils import send_email
 from datetime import date, time
 
 # Tests for the Volunteer APIs
@@ -395,3 +397,98 @@ class VolunteerScheduleSerializerTest(APITestCase):
         response = self.client.post('/api/schedules/', data, format='json')
         print('outside absence period response:', response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class SendEmailAPITests(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='admin',
+            email='admin@vmstest.com',
+            role=User.Role.ADMIN,
+            is_active=True
+        )
+        # Recipient must be an existing User — serializer uses PrimaryKeyRelatedField
+        self.recipient = User.objects.create_user(
+            username='volunteer1',
+            email='volunteer1@vmstest.com',
+            role=User.Role.VOLUNTEER,
+            is_active=True
+        )
+        self.client.force_authenticate(user=self.user)
+        self.url = '/api/send-email/'
+
+    # Should succeed when all fields are provided, and create a Notification record
+    @patch('vms.utils._dump_email', return_value='/tmp/email_dumps/20260101_000000_abcd1234.eml')
+    @patch('vms.utils.EmailMultiAlternatives')
+    def test_send_email_success(self, mock_email, _mock_dump):
+        mock_email.return_value.send.return_value = None
+        response = self.client.post(self.url, {
+            'recipient_id': self.recipient.pk,
+            'subject': 'Shift Confirmed',
+            'message': 'Your shift on Saturday at 10am has been confirmed.',
+        }, format='json')
+        print('Testing Email response:', response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['detail'], 'Email sent successfully.')
+
+        # Notification row must be created with correct fields
+        self.assertEqual(Notification.objects.count(), 1)
+        notif = Notification.objects.first()
+        self.assertEqual(notif.recipient_id, self.recipient)
+        self.assertEqual(notif.subject, 'Shift Confirmed')
+        self.assertEqual(notif.dump_path, '/tmp/email_dumps/20260101_000000_abcd1234.eml')
+        self.assertIsNotNone(notif.sender)
+        self.assertIsNotNone(notif.date_sent)
+
+
+    # Should fail when recipient_id does not match any User
+    def test_send_email_invalid_recipient_id(self):
+        response = self.client.post(self.url, {
+            'recipient_id': 99999,
+            'subject': 'Shift Confirmed',
+            'message': 'Your shift has been confirmed.',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('recipient_id', response.data)
+
+
+class NotificationTests(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = User.objects.create_user(
+            username='notif_admin',
+            email='notif_admin@vmstest.com',
+            role=User.Role.ADMIN,
+            is_active=True
+        )
+        self.recipient = User.objects.create_user(
+            username='notif_recipient',
+            email='recipient@vmstest.com',
+            role=User.Role.VOLUNTEER,
+            is_active=True
+        )
+        self.client.force_authenticate(user=self.admin)
+        self.url = '/api/send-email/'
+
+    def test_notification_str(self):
+        notif = Notification.objects.create(
+            sender='noreply@test.com',
+            recipient_id=self.recipient,
+            subject='Test Subject',
+        )
+
+        print('Testing Notification response:', notif.__str__())
+        self.assertIn('Test Subject', str(notif))
+        self.assertIn(str(self.recipient), str(notif))
+
+    def test_notification_date_sent_auto_populated(self):
+        notif = Notification.objects.create(
+            sender='noreply@test.com',
+            recipient_id=self.recipient,
+            subject='Auto Date Test',
+        )
+        self.assertIsNotNone(notif.date_sent)
+

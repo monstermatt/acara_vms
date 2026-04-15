@@ -169,3 +169,30 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+
+# ---------------------------------------------------------------------------
+# Email / Notifications
+# ---------------------------------------------------------------------------
+# Development default: print emails to the console (no SMTP needed).
+# Production (AWS SES): set EMAIL_BACKEND to smtp and supply SES SMTP credentials.
+# See .env.example for the full list of variables.
+
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "email-smtp.us-east-1.amazonaws.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@acara.com")
+
+# ---------------------------------------------------------------------------
+# Email dump storage
+# ---------------------------------------------------------------------------
+# Local path where outgoing emails are written as .eml files.
+# Override it in .env to point to a different directory.
+# Future: swap this for an S3 prefix (e.g. "s3://bucket/acara-sent-mails/email-dumps/").
+EMAIL_DUMP_PATH = os.environ.get("EMAIL_DUMP_PATH", str(BASE_DIR / "email_dumps"))

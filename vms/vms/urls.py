@@ -23,4 +23,5 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path('password-reset-request/', views.password_reset_request, name='password_reset_request'),
     path('confirm-password-reset/', views.confirm_password_reset, name='confirm_password_reset'),
+    path("send-email/", views.SendEmailView.as_view(), name="send-email"),
 ]
