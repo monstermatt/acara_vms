@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   addDays,
@@ -9,7 +9,6 @@ import {
   isSameDay,
   isSameMonth,
   isToday,
-  setMinutes,
   startOfMonth,
   startOfWeek,
   subMonths,
@@ -23,7 +22,10 @@ import { getEventsForDate,
     CalendarView  } from "../calendar/calendarUtils";
 
 import { DayView } from "./DayView";
-import { currEvents } from "../calendar/calendarManager";
+import { getVisits } from "../api/getVisits";
+
+import { toCalendarEvent } from "../calendar/calendarManager";
+import {CalendarEvent} from "../calendar/calendarUtils";
 
 
 // MARK: - Visualise the calendar month view with all appointments
@@ -31,13 +33,31 @@ export default function CalendarMonthView() {
   const [view, setView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 10));
   const [selectedDate, setSelectedDate] = useState(new Date(2025, 0, 10));
+  const [visits, setVisits] = useState<CalendarEvent[]>([]);
+  
 
-  // useMemo is a React Hook that lets you cache the result of a calculation between re-renders.
+  useEffect(() => {
+
+    async function fetchAppointments() {
+      try {
+        const appointmentsData = await getVisits();
+        const calendarEvents = appointmentsData.map((item) => toCalendarEvent(item));
+        setVisits(calendarEvents); 
+      
+        // setAppointments(appointmentsData);
+        console.log("Fetched appointments:", appointmentsData);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      }
+    }
+
+    fetchAppointments();
+  }, []);
   // it is important here to prevent recalculating the month grid on every time.
   const monthDays = useMemo(() => {
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
 
     return Array.from({ length: 42 }, (_, index) => addDays(gridStart, index)).filter(
       (day) => day <= addDays(startOfWeek(monthEnd, { weekStartsOn: 1 }), 6),
@@ -45,7 +65,7 @@ export default function CalendarMonthView() {
   }, [currentDate]);
 
 
-  const selectedEvents = getEventsForDate(currEvents, selectedDate).sort(
+  const selectedEvents = getEventsForDate(visits, selectedDate).sort(
     (a, b) => a.start.getTime() - b.start.getTime(),
   );
 
@@ -184,7 +204,7 @@ export default function CalendarMonthView() {
 
                 <div className="grid grid-cols-7">
                   {monthDays.map((day, index) => {
-                    const events = getEventsForDate(currEvents, day);
+                    const events = getEventsForDate(visits, day);
                     const muted = !isSameMonth(day, currentDate);
                     const active = isSameDay(day, selectedDate);
                     const isLastRow = index >= monthDays.length - 7;
@@ -244,7 +264,7 @@ export default function CalendarMonthView() {
                 </div>
               </>
             ) : (
-              <DayView date={selectedDate} events={currEvents} />
+              <DayView date={selectedDate} events={visits} />
             )}
           </div>
         </div>

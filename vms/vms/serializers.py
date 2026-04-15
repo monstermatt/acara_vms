@@ -151,7 +151,7 @@ class VisitSerializer(serializers.ModelSerializer):
         source = 'volunteer',
         write_only = True
     )
-    schedule = VolunteerSerializer(read_only = True)
+    schedule = VolunteerScheduleSerializer(read_only = True)
     schedule_id = serializers.PrimaryKeyRelatedField(
         queryset = VolunteerSchedule.objects.all(),
         source = 'schedule',

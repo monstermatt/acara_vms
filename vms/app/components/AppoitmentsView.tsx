@@ -6,41 +6,21 @@ import { MessageIcon } from '@/icons';
 import { Checkbox } from './Utils/Checkbox';
 import { StatusDropdown } from './Utils/AppoitmentStatusDropdown';
 import { EditIcon, DeleteIcon } from '@/icons';
+import { VolunteerVisit } from '../volunteers/types/visits';
 
-// Appointment template interface
-interface AppointmentTemplate {
-  id: number;
-  volunteer_name: string;
-  volunteer_phone: string;
-  appoitment_time: string;
-  appointment_status: string;
+
+
+interface VistiViewProps {
+  visits: VolunteerVisit[];
 }
 
-// MARK: - Replace with data from API once backend is ready
-const INITIAL_TEMPLATES: AppointmentTemplate[] = [
-  {
-    id: 1,
-    volunteer_name: 'Jonh Black',
-    volunteer_phone: '123-456-7890',
-    appoitment_time: '2023-10-01 10:00',
-    appointment_status: '',
-  },
-  {
-    id: 2,
-    volunteer_name: 'Emily White',
-    volunteer_phone: '098-765-4321',
-    appoitment_time: '2023-10-02 14:00',
-    appointment_status: '',
-  },
-];
-
-export default function AppointmentsView() {
-  const [templates, setTemplates] = useState<AppointmentTemplate[]>(INITIAL_TEMPLATES);
+export default function AppointmentsView(props: VistiViewProps) {
+  const [templates, setTemplates] = useState<VolunteerVisit[]>(props.visits);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [searchText, setSearchText] = useState('');
 
   const filteredTemplates = templates.filter((t) =>
-    t.volunteer_name.toLowerCase().includes(searchText.toLowerCase())
+    t.volunteer.user.first_name.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const toggleSelect = (id: number) => {
@@ -72,7 +52,7 @@ export default function AppointmentsView() {
     console.log('Edit templates with IDs:', Array.from(selectedIds));
   }
 
-  const openMessage = (template: AppointmentTemplate) => {
+  const openMessage = (template: VolunteerVisit) => {
     console.log('Open Message Modal for template:', template);
   };
 
@@ -182,16 +162,16 @@ export default function AppointmentsView() {
                     </td>
 
                     <td className="px-4 py-4 text-gray-800 font-medium w-1/3">
-                      {template.volunteer_name}
+                      {template.volunteer.user.first_name} {template.volunteer.user.last_name}
                     </td>
 
-                    <td className="px-4 py-4 text-gray-500">{template.volunteer_phone}</td>
+                    <td className="px-4 py-4 text-gray-500">{template.volunteer.phone_number}</td>
 
-                    <td className="px-4 py-4 text-gray-500">{template.appoitment_time}</td>
+                    <td className="px-4 py-4 text-gray-500">{template.visit_start_time}</td>
 
                     <td className="px-4 py-4">
                       <StatusDropdown
-                        value={template.appointment_status}
+                        value={template.charted ? "Completed"  : ''}
                         onChange={(newStatus) => handleStatusChange(template.id, newStatus)}
                       />
                     </td>
