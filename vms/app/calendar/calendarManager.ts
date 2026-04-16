@@ -8,11 +8,13 @@ export function toCalendarEvent(item: any): CalendarEvent {
   const [startHour, startMinute] = item.visit_start_time.split(":").map(Number);
   const [endHour, endMinute] = item.visit_end_time.split(":").map(Number);
 
+  const visitorName = item.volunteer.user.first_name + " " + item.volunteer.user.last_name;
+
   return makeEvent(
     String(item.id),
-    `Visit ${item.id}`, // customize if needed
+    `Visit - ${visitorName}`, // customize if needed
     year,
-    month - 1, // JS months are 0-based
+    month - 1, 
     day,
     startHour,
     startMinute,

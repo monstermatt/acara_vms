@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MessageIcon } from '@/icons';
 
 import { Checkbox } from './Utils/Checkbox';
@@ -18,6 +18,11 @@ export default function AppointmentsView(props: VistiViewProps) {
   const [templates, setTemplates] = useState<VolunteerVisit[]>(props.visits);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [searchText, setSearchText] = useState('');
+
+  // we need to copy props.visits to local state to allow for editing/deleting without mutating props directly
+  useEffect(() => {
+      setTemplates(props.visits);
+  }, [props.visits]);
 
   const filteredTemplates = templates.filter((t) =>
     t.volunteer.user.first_name.toLowerCase().includes(searchText.toLowerCase())
