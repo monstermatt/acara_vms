@@ -70,7 +70,7 @@ export const authOptions: NextAuthOptions = {
 //Pass the options into NextAuth
 const handler = NextAuth(authOptions);
 // Intercept the POST request to prevent NextAuth from running JSON.parse on form data
-export async function POST(req: Request, ctx: { params: { nextauth: string[] } }) {
+export async function POST(req: Request, ctx: { params: Promise<{ nextauth: string[] }> }) {
   const clonedReq = req.clone();
   
   // If the request is mistakenly flagged as JSON, we intercept and fix the header
@@ -89,10 +89,10 @@ export async function POST(req: Request, ctx: { params: { nextauth: string[] } }
 
      const nextReq = new NextRequest(newReq);
 
-     return handler(nextReq, ctx);
+     return (handler as any)(nextReq, ctx);
   }
 
-  return handler(req, ctx);
+  return (handler as any)(req, ctx);
 }
 
 export { handler as GET, };

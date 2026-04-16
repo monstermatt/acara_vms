@@ -97,7 +97,16 @@ export default function MatchingDashboard({ initialVolunteers }: MatchingDashboa
       )}
 
       <section>
-        <VolunteerTable data={filteredData} />
+        <VolunteerTable data={filteredData}
+        onDelete={(userId) => {
+            // Implement delete logic, e.g., remove from state or API call
+            console.log('Deleting user:', userId);
+          }}
+          onEdit={(user) => {
+            // Implement edit logic, e.g., open edit modal or navigate
+            console.log('Editing user:', user);
+          }}
+          />
       </section>
     </>
   );

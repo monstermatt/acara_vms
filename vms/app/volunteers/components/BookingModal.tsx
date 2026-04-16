@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import { CalendarIcon, ClockIcon, ReportingIcon } from '@/icons';
 
@@ -8,6 +8,14 @@ interface BookingModalProps {
   volunteerName: string;
   onClose: () => void;
   onSuccess: () => void; // Callback to refresh table or show success message
+}
+
+//initial availabiltiy data
+interface AvailableSlot {
+  dayofweek: string;
+  start_time: string;
+  end_time: string;
+  available_dates: string[];
 }
 
 // Frequency options
@@ -24,15 +32,55 @@ const FREQUENCY_OPTIONS = [
 
 export default function BookingModal({ volunteerId, volunteerName, onClose, onSuccess }: BookingModalProps) {
     const [startDate, setStartDate] = useState('');
-    const [startTime, setStartTime] = useState('08:00');
-    const [endTime, setEndTime] = useState('21:00');
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
     const [frequency, setFrequency] = useState('NONE');
     const [error, setError] = useState('');
     const { data: session } = useSession();
     const token = (session as any)?.accessToken;
     const [isSuccess, setIsSuccess] = useState(false);
+    const [availableSlots, setAvailableSlots]=useState<AvailableSlot[]>([]);
+    const [isFetchingSlots, setIsFetchingSlots] = useState(false);
 
+    // Fetch availability when the date changes
+    useEffect(() => {
+        const fetchAvailability = async () => {
+            if (!startDate) {
+                setAvailableSlots([]);
+                return;
+            }
 
+            setIsFetchingSlots(true);
+            setError(''); // Clear any previous errors
+
+            try {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/${volunteerId}/available-slots-in-a-day/?start_date=${startDate}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setAvailableSlots(data);
+                } else {
+                    console.error("Failed to fetch slots");
+                    setAvailableSlots([]);
+                }
+            } catch (err) {
+                console.error('Error fetching availability:', err);
+                setAvailableSlots([]);
+            } finally {
+                setIsFetchingSlots(false);
+            }
+        };
+
+        fetchAvailability();
+    }, [startDate, volunteerId, token]);
 
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent) => {
@@ -159,6 +207,38 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
                                         className="input-style flex-1 bg-white" 
                                         />
                                     </div>
+                                    {startDate && (
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-32 font-bold text-gray-800"><CalendarIcon />Volunteer Availability</div> 
+                                            <div className="flex-1 flex flex-wrap gap-2">
+                                                {isFetchingSlots ? (
+                                                    <span className="text-sm text-gray-500 italic">Checking schedule...</span>
+                                                ) : availableSlots.length > 0 ? (
+                                                    availableSlots.map((slot, index) => (
+                                                        <button
+                                                            key={index}
+                                                            type="button"
+                                                            // Click sets the time inputs to exactly match the API's constraints
+                                                            onClick={() => {
+                                                                setStartTime(slot.start_time.slice(0, 5));
+                                                                setEndTime(slot.end_time.slice(0, 5));
+                                                                setError('');
+                                                            }}
+                                                            className="text-xs font-semibold bg-pink-50 text-[#9F0059] border border-[#9F0059] px-3 py-1.5 rounded-md hover:bg-[#9F0059] hover:text-white transition-colors"
+                                                        >
+                                                            {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-sm font-medium text-red-500 bg-red-50 px-3 py-1 rounded-md">
+                                                        No availability on this date.
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    
 
                                     {/* Time Row */}
                                     <div className="flex items-center gap-4">

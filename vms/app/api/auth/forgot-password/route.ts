@@ -13,6 +13,11 @@ export async function POST(req: Request) {
 
     const data = await djangoRes.json();
 
+    if (!djangoRes.ok) {
+            // Handle Django errors
+            return NextResponse.json({ error: "Failed to request password reset from backend" }, { status: djangoRes.status });
+        }
+
     // If Django returns a token, send the email
     if (data.token && data.uid) {
         // Construct the frontend URL
@@ -22,8 +27,8 @@ export async function POST(req: Request) {
         const transporter = nodemailer.createTransport({
           //pool: true, //set to true for production to reuse connections
           host: process.env.EMAIL_SERVER_HOST,
-          port: process.env.EMAIL_SERVER_PORT,
-          secure: 'true',
+          port: Number(process.env.EMAIL_SERVER_PORT),
+          secure: true,
           auth: {
             user: process.env.EMAIL_SERVER_USER,
             pass: process.env.EMAIL_SERVER_PASSWORD,

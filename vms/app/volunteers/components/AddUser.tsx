@@ -153,7 +153,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       
       if (selectedSkills.length > 0) {
         const skillPromises = selectedSkills.map(async (skillName) => {
-          const res = await fetch("http://127.0.0.1:8000/api/skills/", {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/skills/"`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -178,7 +178,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       
       if (selectedLanguages.length > 0) {
         const languagePromises = selectedLanguages.map(async (languageName) => {
-          const res = await fetch("http://127.0.0.1:8000/api/languages/", {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/languages/`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({ language_name: languageName }),
@@ -204,13 +204,13 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         gender: formData.gender,
         max_distance_preferred: Number(formData.max_distance_preferred),
         team: formData.team,
-        sub_duty_preference: formData.sub_duty_preference === "true",
+        sub_duty_preference: formData.sub_duty_preference,
         skills: createdSkillIds, 
         languages: createdLanguageIds, 
         preferences: selectedPreferenceIds, // Make sure these IDs exist in Postgres
       };
 
-      const volResponse = await fetch("http://127.0.0.1:8000/api/volunteers/", {
+      const volResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(volunteerPayload),
@@ -262,6 +262,8 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
           };
         }),
         availability: availabilities as any,
+        address: createdVolunteer.address || formData.address,
+        age_group: createdVolunteer.age_group || formData.age_group
       };
 
       onSuccess(completeUserData);
@@ -550,15 +552,16 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                         <label className="form-label" htmlFor="max_distance_preferred">Max Travel Distance (miles)</label>
                         <input className="input-style" type="number" name="max_distance_preferred" placeholder="Max Travel Distance (miles)" value={formData.max_distance_preferred} onChange={handleChange} />
                     </div>
+                  
                     <div className="col-span-full pt-2 flex items-center gap-2">
                         <input 
                             type="checkbox" 
                             name="sub_duty_preference"
-                            checked={formData.sub_duty_preference === "true"}
-                            onChange={(e) => setFormData(prev => ({ ...prev, sub_duty_preference: String(e.target.checked) }))}
+                            checked={formData.sub_duty_preference }
+                            onChange={(e) => setFormData(prev => ({ ...prev, sub_duty_preference: e.target.checked }))}
                             className="w-4 h-4 text-primary-maroon focus:ring-primary-maroon rounded border-gray-300" 
                         />
-                        <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>
+                        <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>                    
                     </div>
                 </div>
             </div>
