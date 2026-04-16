@@ -31,8 +31,8 @@ import {CalendarEvent} from "../calendar/calendarUtils";
 // MARK: - Visualise the calendar month view with all appointments
 export default function CalendarMonthView() {
   const [view, setView] = useState<CalendarView>("month");
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 10));
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 0, 10));
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [visits, setVisits] = useState<CalendarEvent[]>([]);
   
 
@@ -135,8 +135,8 @@ export default function CalendarMonthView() {
 
               <button
                 onClick={() => {
-                  setCurrentDate(new Date(2025, 0, 10));
-                  setSelectedDate(new Date(2025, 0, 10));
+                  setCurrentDate(new Date());
+                  setSelectedDate(new Date());
                 }}
                 className="rounded-lg px-3 py-2 text-sm text-[#9F0059] hover:bg-pink-100"
               >

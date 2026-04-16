@@ -17,9 +17,6 @@ export async function getVisits(): Promise<VolunteerVisit[]> {
 
     const visitsData: VolunteerVisit[] = await res.json();
 
-    console.log("Successfully fetched visits");
-    console.log("Visits Data:", visitsData);
-
     return visitsData;
   } catch (error) {
     console.error("Error fetching visits:", error);
