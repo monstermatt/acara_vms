@@ -10,19 +10,26 @@ import { useEffect, useState } from "react";
 import { getVisits } from "../api/getVisits";
 
 
+import {useSession} from "next-auth/react";
+
 export default function DashboardPage() { 
   const [visits, setVisits] = useState<VolunteerVisit[]>([]);
-  
+  const {data: session, status} = useSession();
+  const token = (session as any)?.accessToken;
+
+
   useEffect(() => {
-    
+
         async function fetchAppointments() {
+          if (status === "authenticated" && token){
           try {
-            const appointmentsData = await getVisits();
+            const appointmentsData = await getVisits(token as string);
             setVisits(appointmentsData);
           } catch (error) {
             console.error("Error fetching appointments:", error);
           }
         }
+      }
     
         fetchAppointments();
       }, []);

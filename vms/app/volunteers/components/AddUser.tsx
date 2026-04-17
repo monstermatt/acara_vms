@@ -131,7 +131,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       const createdUser = await userResponse.json();
 
       try{
-      const emailResponse = await fetch('http://localhost:3000/api/auth/forgot-password/', {
+      const emailResponse = await fetch('http://localhost:3000/api/forgot-password/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -22,6 +22,9 @@ export default withAuth(
                 if (path.startsWith("/volunteers") || path.startsWith("/dashboard") || path.startsWith("/calendar")) {
                     return userRole === "COORD" || userRole === "ADMIN";
                 }
+                if (path.startsWith("/profile")){
+                    return userRole === "VOLUN";
+                }
 
                 return true; //allow unprotected routes to be accessed
             }
@@ -35,5 +38,6 @@ export const config = {
         "/settings/:path*",
         "/volunteers/:path*",
         "/calendar/:path*",
+        "/profile/:path*"
     ]
 }

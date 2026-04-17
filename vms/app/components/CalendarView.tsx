@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-
+import { useSession } from "next-auth/react";
 import {
   addDays,
   addMonths,
@@ -34,13 +34,17 @@ export default function CalendarMonthView() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [visits, setVisits] = useState<CalendarEvent[]>([]);
-  
+  const { data: session, status } = useSession(); // set variable for the session to get the token for authentication when hitting the API
+  const token = (session as any)?.accessToken; //extract token from nextauth session
 
   useEffect(() => {
+    if (status !== "authenticated" || !token) {
+      return; 
+    }
 
     async function fetchAppointments() {
       try {
-        const appointmentsData = await getVisits();
+        const appointmentsData = await getVisits(token);
         const calendarEvents = appointmentsData.map((item) => toCalendarEvent(item));
         setVisits(calendarEvents); 
       
@@ -52,7 +56,7 @@ export default function CalendarMonthView() {
     }
 
     fetchAppointments();
-  }, []);
+  }, [token, status]);
   // it is important here to prevent recalculating the month grid on every time.
   const monthDays = useMemo(() => {
   const monthStart = startOfMonth(currentDate);

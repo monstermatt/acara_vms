@@ -10,14 +10,14 @@ export default async function VolunteerOverviewPage() {
 
     // Fetch both endpoints 
     const [volRes, availRes] = await Promise.all([
-      fetch("http://127.0.0.1:8000/api/volunteers/", {
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
         cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           ...(token && { "Authorization": `Bearer ${token}` }) // Only add the Authorization header if a token exists
         }
       }),
-      fetch("http://127.0.0.1:8000/api/availability/", {
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
         cache: "no-store",
         headers: {
           "Content-Type": "application/json",

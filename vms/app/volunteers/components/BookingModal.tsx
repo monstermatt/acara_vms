@@ -94,18 +94,24 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
     }
     //Determine the actual day of the week if "One time" is selected
     let finalDayOfWeek = frequency;
+    let finalEndDate = startDate; //default to single occurence
     if (frequency === 'NONE') {
       // Split the date string to avoid timezones messing with the day calculation
       const [year, month, day] = startDate.split('-');
       const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
       const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
       finalDayOfWeek = days[dateObj.getDay()];
+    } else {
+    // If recurring, calculate a future end date (6 months from start)
+      const [year, month, day] = startDate.split('-');
+      const endDateObj = new Date(Number(year), Number(month) - 1 + 6, Number(day));
+      finalEndDate = endDateObj.toISOString().split('T')[0];
     }
 
     const bookingData = {
       volunteer: volunteerId,
       start_date: startDate,
-      end_date: startDate, // Assuming a single occurrence for this example
+      end_date: finalEndDate, // using +6 months calculated above
       dayofweek: finalDayOfWeek, //will always send 3 letter code of day, backend will handle "NONE" case by using start_date to determine day of week
       start_time: startTime + ':00', // Backend needs time in HH:MM:SS format
       end_time: endTime + ':00',

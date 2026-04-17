@@ -1,10 +1,46 @@
 import next from "next";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import {NextRequest} from "next/server";
+import { NextRequest } from "next/server";
 
+//helper function
+function decodeJwt(token: string) {
+  const tokenParts = token.split('.');
+  if (tokenParts.length !== 3) return { exp: 0 };
+  const encodedPayload = tokenParts[1];
+  return JSON.parse(Buffer.from(encodedPayload, 'base64').toString('utf-8'));
+}
+
+// refreshAccessToken
+async function refreshAccessToken(token: any) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/token/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: token.refreshToken }),
+    });
+
+    const refreshedTokens = await response.json();
+
+    if (!response.ok) throw refreshedTokens;
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.access,
+      expiresAt: decodeJwt(refreshedTokens.access).exp * 1000,
+      refreshToken: refreshedTokens.refresh ?? token.refreshToken,
+    };
+  } catch (error) {
+    return { ...token, error: "RefreshAccessTokenError" };
+  }
+}
 
 export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 60, // 30 minute time out
+    updateAge: 5 * 60, // extend session every 5 minutes of activity
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -13,7 +49,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const res = await fetch("http://127.0.0.1:8000/api/token/", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/token/`, {
           method: 'POST',
           body: JSON.stringify({
             email: credentials?.email,
@@ -23,12 +59,10 @@ export const authOptions: NextAuthOptions = {
         });
 
         const data = await res.json();
-        console.log("Django response:", data) //for debugging on successful login
+        console.log("Django response:", data) // for debugging on successful login
 
         if (res.ok && data.access) {
-          const tokenParts = data.access.split('.');
-          const encodedPayload = tokenParts[1];
-          const decodedPayload = JSON.parse(Buffer.from(encodedPayload,'base64').toString('utf-8'));
+          const decodedPayload = decodeJwt(data.access);
 
           return {
             id: decodedPayload.user_id.toString(),
@@ -44,13 +78,26 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // Initial Sign in
       if (user) {
-        token.accessToken = (user as any).access;
-        token.refreshToken = (user as any).refresh;
-        token.role = (user as any).role; 
-        token.id = user.id;
+        const accessData = decodeJwt((user as any).access);
+        return {
+          ...token,
+          accessToken: (user as any).access,
+          refreshToken: (user as any).refresh,
+          role: (user as any).role, 
+          id: user.id,              
+          expiresAt: accessData.exp * 1000,
+        };
       }
-      return token;
+
+      // Return previous token if the access token has not expired yet
+      if (Date.now() < (token as any).expiresAt) {
+        return token;
+      }
+
+      // Access token has expired, try to update it
+      return refreshAccessToken(token);
     },
     async session({ session, token }) {
       (session as any).accessToken = token.accessToken;
@@ -67,13 +114,14 @@ export const authOptions: NextAuthOptions = {
   }
 };
 
-//Pass the options into NextAuth
+// Pass the options into NextAuth
 const handler = NextAuth(authOptions);
+
 // Intercept the POST request to prevent NextAuth from running JSON.parse on form data
 export async function POST(req: Request, ctx: { params: Promise<{ nextauth: string[] }> }) {
   const clonedReq = req.clone();
   
-  // If the request is mistakenly flagged as JSON, we intercept and fix the header
+  // If the request is mistakenly flagged as JSON, intercept and fix the header
   if (clonedReq.headers.get("content-type")?.includes("application/json")) {
      const text = await clonedReq.text();
      
@@ -95,5 +143,4 @@ export async function POST(req: Request, ctx: { params: Promise<{ nextauth: stri
   return (handler as any)(req, ctx);
 }
 
-export { handler as GET, };
-
+export { handler as GET };

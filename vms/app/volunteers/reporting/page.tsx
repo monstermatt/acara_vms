@@ -7,16 +7,20 @@ import {CalendarSummaryIcon, ChartLateSummaryIcon, AppOnTimeSummaryIcon} from '@
 import { VolunteerVisit } from "../types/visits";
 import { useEffect, useMemo, useState } from "react";
 import { getVisits } from "../../api/getVisits";
+import {useSession} from "next-auth/react"
 
 
 export default function VolunteerReportingPage() {
   const [visits, setVisits] = useState<VolunteerVisit[]>([]);
+  const { data: session } = useSession(); // set variable for the session to get the token for authentication when hitting the API
+  const token = (session as any)?.accessToken; //extract token from nextauth session
+
 
    useEffect(() => {
   
       async function fetchAppointments() {
         try {
-          const appointmentsData = await getVisits();
+          const appointmentsData = await getVisits(token);
           setVisits(appointmentsData);
         } catch (error) {
           console.error("Error fetching appointments:", error);

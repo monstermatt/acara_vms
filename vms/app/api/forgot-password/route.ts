@@ -14,7 +14,8 @@ export async function POST(req: Request) {
     const data = await djangoRes.json();
 
     if (!djangoRes.ok) {
-            // Handle Django errors
+            // Handle Django errors without exposing to client side
+            console.error("Django rejected password reset:", await djangoRes.text());
             return NextResponse.json({ error: "Failed to request password reset from backend" }, { status: djangoRes.status });
         }
 
@@ -41,7 +42,12 @@ export async function POST(req: Request) {
             subject: "Acara VMS Password Set-Up",
             html: `<p>Click <a href="${resetLink}">here</a> to set your password.</p>`,
         });
-    }
+    
 
-    return NextResponse.json({ success: true });
-}
+        return NextResponse.json({ success: true });
+        } else {
+            console.error("Django returned 200 but was missing token or uid.", data);
+            return NextResponse.json({ error: "Invalid response from server" }, { status: 500 });
+        }
+
+    }

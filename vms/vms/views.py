@@ -29,6 +29,7 @@ from django.http import StreamingHttpResponse
 # Create your views here.
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+    permission_classes = [AllowAny]
 
 # NOTE To understand this better, please review documentation: https://www.django-rest-framework.org
 # View for User
