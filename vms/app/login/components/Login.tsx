@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UnhidePasswordIcon, HidePasswordIcon } from '@/icons';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react'; //usesession necessary for role based routing
+
 
 type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
@@ -39,9 +40,14 @@ const Login = ({ setView }: Props) => {
 
     if (result?.error) {
       setInvalidCredentials(true);
+    }else{
+      const session = await getSession();
+      if ((session?.user as any)?.role === "VOLUN") {
+        router.push('/profile');
     }else {
       router.push('/dashboard')
     }
+  }
 
     // resetting errors
     setInvalidEmail(false)

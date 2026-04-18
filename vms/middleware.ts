@@ -23,7 +23,7 @@ export default withAuth(
                     return userRole === "COORD" || userRole === "ADMIN";
                 }
                 if (path.startsWith("/profile")){
-                    return userRole === "VOLUN";
+                    return userRole === "VOLUN" || userRole === "COORD" || userRole === "ADMIN";
                 }
 
                 return true; //allow unprotected routes to be accessed
