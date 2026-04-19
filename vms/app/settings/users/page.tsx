@@ -7,11 +7,11 @@ import { useSession } from "next-auth/react";
 // HOW a user looks like
 interface User {
   id: number;
-  username: string;
+  username?: string;
   email: string;
   first_name: string;
   last_name: string;
-  is_active: boolean;
+  is_active?: boolean;
   role: 'VOLUN' | 'COORD' | 'ADMIN'; 
   avatar?: string;
 }
@@ -611,7 +611,8 @@ const handleSave = async () => {
 
   } catch (err) {
     console.error(err);
-    // Handle the error in the UI
+    const message = err instanceof Error ? err.message : String(err);
+    alert("There was an error creating the user: " + message);
   }
 };
   return (
@@ -778,7 +779,8 @@ const {data: session } = useSession(); // set variable for the session to get th
       });
     } catch (err) {
       console.error(err);
-      alert ("There was an error updating the user: " + err.message);
+      const message = err instanceof Error ? err.message : String(err);
+      alert("There was an error updating the user: " + message);
     }
   };
 
