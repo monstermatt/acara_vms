@@ -584,7 +584,7 @@ const handleSave = async () => {
       }
 
     try{
-      const emailResponse = await fetch('http://localhost:3000/api/auth/forgot-password/', {
+      const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/forgot-password/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

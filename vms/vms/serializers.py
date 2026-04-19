@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference, VolunteerSchedule, VolunteerAbsence, VolunteerAvailability, Visit
+from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference, VolunteerSchedule, VolunteerAbsence, VolunteerAvailability, Visit, Template
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Serializer for the User model
@@ -177,3 +177,9 @@ class SendEmailSerializer(serializers.Serializer):
     )
     subject = serializers.CharField(max_length=255)
     message = serializers.CharField()
+
+# Serializer for Message Templates (used for "Message templates" in menu item "Settings")
+class TemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Template
+        fields = ['id', 'template_type', 'template_content']
