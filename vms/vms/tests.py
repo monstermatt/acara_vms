@@ -417,7 +417,7 @@ class SendEmailAPITests(APITestCase):
             is_active=True
         )
         self.client.force_authenticate(user=self.user)
-        self.url = '/api/send-email/'
+        self.url = '/api/email/send/'
 
     # Should succeed when all fields are provided, and create a Notification record
     @patch('vms.utils._dump_email', return_value='/tmp/email_dumps/20260101_000000_abcd1234.eml')
@@ -436,7 +436,7 @@ class SendEmailAPITests(APITestCase):
         # Notification row must be created with correct fields
         self.assertEqual(Notification.objects.count(), 1)
         notif = Notification.objects.first()
-        self.assertEqual(notif.recipient_id, self.recipient)
+        self.assertEqual(notif.recipient, self.recipient)
         self.assertEqual(notif.subject, 'Shift Confirmed')
         self.assertEqual(notif.dump_path, '/tmp/email_dumps/20260101_000000_abcd1234.eml')
         self.assertIsNotNone(notif.sender)
@@ -445,7 +445,7 @@ class SendEmailAPITests(APITestCase):
 
     # Should fail when recipient_id does not match any User
     def test_send_email_invalid_recipient_id(self):
-        response = self.client.post(self.url, {
+        response = self.client.post('/api/email/send/', {
             'recipient_id': 99999,
             'subject': 'Shift Confirmed',
             'message': 'Your shift has been confirmed.',
@@ -471,12 +471,12 @@ class NotificationTests(APITestCase):
             is_active=True
         )
         self.client.force_authenticate(user=self.admin)
-        self.url = '/api/send-email/'
+        self.url = '/api/email/send/'
 
     def test_notification_str(self):
         notif = Notification.objects.create(
-            sender='noreply@test.com',
-            recipient_id=self.recipient,
+            sender=self.admin,
+            recipient=self.recipient,
             subject='Test Subject',
         )
 
@@ -486,8 +486,8 @@ class NotificationTests(APITestCase):
 
     def test_notification_date_sent_auto_populated(self):
         notif = Notification.objects.create(
-            sender='noreply@test.com',
-            recipient_id=self.recipient,
+            sender=self.admin,
+            recipient=self.recipient,
             subject='Auto Date Test',
         )
         self.assertIsNotNone(notif.date_sent)

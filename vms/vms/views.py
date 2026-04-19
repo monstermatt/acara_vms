@@ -4,7 +4,6 @@ from .serializers import MyTokenObtainPairSerializer, UserSerializer, VolunteerS
 from rest_framework import serializers, viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 import json
@@ -16,7 +15,7 @@ from rest_framework.decorators import action
 from datetime import datetime
 #for email verification and password reset
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -270,18 +269,25 @@ class MatchingBetaViewSet(viewsets.ViewSet):
 
 
 # View for sending email
-class SendEmailView(APIView):
-    def post(self, request):
+class SendEmailViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['post'], url_path='send')
+    def send(self, request):
         serializer = SendEmailSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
-        success = send_email(
-            recipient=data['recipient_id'],
-            subject=data['subject'],
-            message=data['message'],
-        )
+        try:
+            success = send_email(
+                sender=request.user,
+                recipient=data['recipient_id'],
+                subject=data['subject'],
+                message=data['message'],
+            )
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         if success:
             return Response({'detail': 'Email sent successfully.'}, status=status.HTTP_200_OK)

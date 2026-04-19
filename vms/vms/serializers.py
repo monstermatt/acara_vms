@@ -171,7 +171,6 @@ class VolunteerAvailableSlotSerializer(serializers.Serializer):
 
 # Serializer for send-email action
 class SendEmailSerializer(serializers.Serializer):
-    # recipient = serializers.EmailField()
     recipient_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all()
     )

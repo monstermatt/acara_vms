@@ -45,47 +45,49 @@ def _dump_email(sender: str, recipient: str, subject: str, message: str) -> str:
         return ''
 
 
-def send_email(recipient: str, subject: str, message: str) -> bool:
+def send_email(sender, recipient, subject: str, message: str) -> bool:
     """
-    Send an email. Returns True on success, False on failure.
+    Send an email from sender to recipient. Returns True on success, False on failure.
 
     On success the call also:
     - writes a .eml dump to EMAIL_DUMP_PATH
-    - records sender, recipient_id, subject, date_sent, and dump_path
+    - records sender, recipient, subject, date_sent, and dump_path
       in the Notification table
 
-    Args:
-        recipient: Destination email address.
+        sender: User instance (sender).
+        recipient: User instance (recipient).
         subject:   Email subject line.
         message:   Email body.
     """
-    sender = settings.DEFAULT_FROM_EMAIL
+    sender_email = sender.email
+    recipient_email = recipient.email
+
     msg = EmailMultiAlternatives(
         subject=subject,
         body=message,
-        from_email=sender,
-        to=[recipient.email],
+        from_email=sender_email,
+        to=[recipient_email],
     )
     try:
         msg.send()
-        logger.info("Email sent to %s | subject: %s", recipient, subject)
+        logger.info("Email sent from %s to %s | subject: %s", sender_email, recipient_email, subject)
 
         dump_path = _dump_email(
-            sender=sender,
-            recipient=recipient.email,
+            sender=sender_email,
+            recipient=recipient_email,
             subject=subject,
             message=message,
         )
         Notification.objects.create(
             sender=sender,
-            recipient_id=recipient,
+            recipient=recipient,
             subject=subject,
             dump_path=dump_path,
         )
 
         return True
     except Exception as exc:
-        logger.error("Failed to send email to %s | subject: %s | error: %s", recipient, subject, exc)
+        logger.error("Failed to send email from %s to %s | subject: %s | error: %s", sender_email, recipient_email, subject, exc)
         return False
 
 def generate_visits(schedule):

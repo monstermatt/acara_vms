@@ -187,31 +187,7 @@ class Template(models.Model):
     def __str__(self):
         return self.template_type # Display the template type
 
-# Log of every email dispatched by the system
-class Notification(models.Model):
-    """ 
-    * Sender: The email address of the sender. 
-    In our case, it will be a no-reply email address like 
-    "noreply@acara.com".
-    * Recipient: The recipient_id is a foreign key to the User model, representing the recipient of the email.
-        This allows us to easily query all notifications sent to a particular user and maintain a clear 
-        relationship between notifications and users.
-    * Subject: The subject is the subject line of the email.
-    * Date Sent: The date_sent is a timestamp of when the email was sent.
-    * Dump Path: The dump_path is a string that stores the path to the dumped .eml file, which contains the full content 
-        of the email for record-keeping and debugging purposes.
-    """
-    sender = models.EmailField() 
-    # email_to = models.EmailField()
-    recipient_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=255)
-    date_sent = models.DateTimeField(auto_now_add=True)
-    # Path to the dumped .eml file — local filesystem today, S3-compatible later
-    dump_path = models.CharField(max_length=1024, blank=True, default='')
 
-    def __str__(self):
-        return f"To: {self.recipient_id} | Subject: {self.subject} | Sent: {self.date_sent}"
-    
 """ # Model to represent volunteer embeddings for enhanced matching
 class UserEmbedding(models.Model):
     volunteer = models.OneToOneField(Volunteer, on_delete=models.CASCADE, related_name='embedding')
@@ -220,3 +196,28 @@ class UserEmbedding(models.Model):
 
     def __str__(self):
         return f"Embedding for {self.volunteer}" """
+
+
+# Log of every email dispatched by the system
+class Notification(models.Model):
+    """ 
+    * Sender: The sender is a foreign key to the User model, representing the sender of the email.
+    * Recipient: The recipient is a foreign key to the User model, representing the recipient of the email.
+        This allows us to easily query all notifications sent to a particular user and maintain a clear 
+        relationship between notifications and users.
+    * Subject: The subject is the subject line of the email.
+    * Date Sent: The date_sent is a timestamp of when the email was sent.
+    * Dump Path: The dump_path is a string that stores the path to the dumped .eml file, which contains the full content 
+        of the email for record-keeping and debugging purposes.
+    """
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_notifications')
+    subject = models.CharField(max_length=255)
+    date_sent = models.DateTimeField(auto_now_add=True)
+    # Path to the dumped .eml file — local filesystem today, S3-compatible later
+    dump_path = models.CharField(max_length=1024, blank=True, default='')
+
+    def __str__(self):
+        return f"From: {self.sender} | To: {self.recipient} | Subject: {self.subject} | Sent: {self.date_sent}"
+    
+

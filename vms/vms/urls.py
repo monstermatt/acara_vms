@@ -18,6 +18,7 @@ router.register(r'visits', views.VisitViewSet)
 router.register(r'templates', views.TemplateViewSet)
 # Route for AI matching feature
 router.register(r'matchingbeta', views.MatchingBetaViewSet, 'matchingbeta')
+router.register(r'email', views.SendEmailViewSet, basename='email')
 
 
 urlpatterns = [
@@ -27,5 +28,4 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), 
     path('password-reset-request/', views.password_reset_request, name='password_reset_request'),
     path('confirm-password-reset/', views.confirm_password_reset, name='confirm_password_reset'),
-    path("send-email/", views.SendEmailView.as_view(), name="send-email"),
 ]
