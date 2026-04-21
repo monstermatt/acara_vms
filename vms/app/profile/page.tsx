@@ -29,7 +29,7 @@ export default function ProfilePage() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-
+        console.log("Fetching user with ID:", userId, "at URL:", `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${userId}/`);
         if (!userRes.ok) throw new Error("Failed to fetch base user profile");
         const userData = await userRes.json();
         setBaseUser(userData);
@@ -42,15 +42,26 @@ export default function ProfilePage() {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          
+          console.log("fetching volunteer with user id:", userId);
           if (volRes.ok) {
             const volData = await volRes.json();
-            // DRF filters return an array. Grab the first match.
+            
             if (volData && volData.length > 0) {
-              setVolunteerData(volData[0]);
-              setVolunteerId(volData[0].id); 
+              // Cast both the nested Django ID and the NextAuth ID to strings
+              const matchedVolunteer = volData.find((vol: any) => 
+                String(vol.user?.id) === String(userId)
+              );
+
+              if (matchedVolunteer) {
+                setVolunteerData(matchedVolunteer);
+                setVolunteerId(matchedVolunteer.id); 
+                console.log("Fetched volunteer data:", matchedVolunteer.id);
+              } else {
+                console.warn("No volunteer record matches this account's User ID.");
+              }
             }
           }
+
         }
       } catch (error) {
         console.error("Error loading profile:", error);
