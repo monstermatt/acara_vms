@@ -38,7 +38,8 @@ else
     echo "The AWS CLI is already installed"
 fi
 
-MODEL_DIR="/hes-pulseup/vms/model"
+# ensure that the target "model" directory has the correct path in production
+MODEL_DIR="/home/ubuntu/hes-pulseup/vms/model"
 
 # skipping model download if it already exists
 if [ -f "$MODEL_DIR/model.onnx" ]; then
