@@ -131,7 +131,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       const createdUser = await userResponse.json();
 
       try{
-      const emailResponse = await fetch('http://localhost:3000/api/forgot-password/', {
+      const emailResponse = await fetch('/api/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       
       if (selectedSkills.length > 0) {
         const skillPromises = selectedSkills.map(async (skillName) => {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/skills/"`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/skills/`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
