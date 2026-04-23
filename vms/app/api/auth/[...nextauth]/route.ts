@@ -91,8 +91,8 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
-      // Return previous token if the access token has not expired yet
-      if (Date.now() < (token as any).expiresAt) {
+      // Return previous token if the access token has not expired yet w/ 10 second buffer
+      if (Date.now() < (token as any).expiresAt - 10000) {
         return token;
       }
 
