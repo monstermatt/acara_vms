@@ -305,7 +305,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
           <section className="info-card">
             <h2 className="section-header">General Info</h2>
             <p className="text-gray-500 mb-10">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla non metus quis augue congue scelerisque ut in neque.
+              Please note that your information will be kept confidential and used solely for volunteer management purposes.
             </p>
 
             {/* Flex layout for avatar & form grid  */}
@@ -386,7 +386,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
           <section className="info-card">
             <h2 className="section-header">Additional Information</h2>
             <p className="text-gray-500 mb-10">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla non metus quis augue congue scelerisque ut in neque.
+              Please provide any additional information that may help us in assigning you to suitable volunteer opportunities, such as your availability, skills, languages spoken, and any preferences you may have for the types of assignments you're interested in.
             </p>
             
             {/* Availabilities Grid Section  */}
@@ -402,7 +402,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                     <div className="mt-4 mb-2">
                         <h3 className="text-lg font-bold text-gray-900 mb-1">Special Skills</h3>
                         <p className="text-sm text-gray-400 mb-3">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        Remember that skills can include anything you have experience with that might be relevant to a patient, facility, or the office.
                         </p>
                         
                         <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">              
@@ -439,7 +439,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                                 onChange={(e) => setNewSkillInput(e.target.value)}
                                 onKeyDown={handleAddSkill}
                                 onBlur={() => setIsAddingSkill(false)} // Hides input if they click away
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#9F0059]"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-[#9F0059]"
                             />
                             </div>
                         )}
@@ -491,7 +491,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                                 onChange={(e) => setNewLanguageInput(e.target.value)}
                                 onKeyDown={handleAddLanguage}
                                 onBlur={() => setIsAddingLanguage(false)} // Hides input if they click away
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#9F0059]"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-[#9F0059]"
                             />
                             </div>
                         )}

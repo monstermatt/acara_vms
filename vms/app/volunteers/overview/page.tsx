@@ -17,7 +17,7 @@ export default async function VolunteerOverviewPage() {
           ...(token && { "Authorization": `Bearer ${token}` }) // Only add the Authorization header if a token exists
         }
       }),
-      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/availability/`, {
         cache: "no-store",
         headers: {
           "Content-Type": "application/json",
