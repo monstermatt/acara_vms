@@ -278,7 +278,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
   };
 
   return (
-    <div className='fixed inset-0 z-50 overflow-y-auto bg-background-alt p-8'>
+    <div className='fixed inset-0 z-50 overflow-y-auto bg-background-alt p-4 md: p-8'>
       
       {/* Main Content Container */}
       <div className='main-container'>
@@ -289,7 +289,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
           
           {/* Header Section with Title & Main Buttons */}
-          <div className="sticky top-0 z-20 bg-background-alt py-4 -mt-4 mb-6 flex justify-between items-start">
+          <div className="sticky top-0 z-20 bg-background-alt py-4 -mt-4 mb-6 flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0">
             <div>
               <h1 className="page-header">New Volunteer</h1>
               <p className="text-gray-500 mt-1">Fill in the form to create a new user</p>
@@ -322,7 +322,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
               </div>
 
               {/* General Info Form Fields Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 flex-grow">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-full">
                 {/* Name */}
                 <div className="flex flex-col gap-1">
                   <label className="form-label" htmlFor="first_name">Name</label>
