@@ -8,7 +8,7 @@ from django.conf import settings
 from pgvector.django import L2Distance
 
 # Uncomment UserEmbedding once model and migrations are implemented
-from .models import Volunteer#, UserEmbedding
+from .models import Volunteer, UserEmbedding
 from .bedrock import retrieve_ai_service
 
 # Setting path to model folder
@@ -18,7 +18,7 @@ MODEL_DIR = settings.BASE_DIR / 'model'
 tokenizer = Tokenizer.from_file(str(MODEL_DIR / 'tokenizer.json'))
 tokenizer.enable_truncation(max_length=256)
 # Uncomment the following only after model is integrated into app
-# session = ort.InferenceSession(str(MODEL_DIR / 'model.onnx'))
+session = ort.InferenceSession(str(MODEL_DIR / 'model.onnx'))
 
 
 def mean_pooling(token_embeddings, attention_mask):
