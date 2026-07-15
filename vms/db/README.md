@@ -1,10 +1,18 @@
-Instructions to set up PostgreSQL 
+Instructions to set up PostgreSQL in Linux(Ubuntu/Debian)
 
-Set up
-brew install postgresql@16  
-echo 'export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-brew services start postgresql@16  
+If the package postgresql-16 is not available, run these commands first:
+    sudo apt install -y postgresql-common
+    sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+    sudo apt update
+
+sudo apt install postgresql-16
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+
+For AI matching:
+    sudo apt install postgresql-16-pgvector
+    sudo -u postgres psql -d vms -c "CREATE EXTENSION vector;"
+
 
 Validate
 psql --version 
@@ -13,7 +21,7 @@ Instructions to connect to PostgreSQL (outside of the application APIs)
 For database and user initialization
 
 Connect
-psql postgres
+sudo -u postgres psql postgres
 
 Create database
 CREATE DATABASE vms;
@@ -22,7 +30,7 @@ Check if database was created
 \list
 
 Create user with password set from an environment variable
-psql postgres -c "CREATE USER vmsadmin WITH PASSWORD '$psqlpwd';"
+CREATE USER vmsadmin WITH PASSWORD '$psqlpwd';
 
 Give the user access
 GRANT ALL PRIVILEGES ON DATABASE vms TO vmsadmin;

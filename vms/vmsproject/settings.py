@@ -204,3 +204,10 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@acara.com")
 # Override it in .env to point to a different directory.
 # Future: swap this for an S3 prefix (e.g. "s3://bucket/acara-sent-mails/email-dumps/").
 EMAIL_DUMP_PATH = os.environ.get("EMAIL_DUMP_PATH", str(BASE_DIR / "email_dumps"))
+
+
+# Twilio Settings
+import os
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')

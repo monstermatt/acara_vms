@@ -1,5 +1,6 @@
+# pyrefly: ignore [missing-import]
 from rest_framework import serializers
-from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference, VolunteerSchedule, VolunteerAbsence, VolunteerAvailability, Visit, Template
+from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference, VolunteerSchedule, VolunteerAbsence, VolunteerAvailability, Visit, Template, MessageHistory
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Serializer for the User model
@@ -182,3 +183,10 @@ class TemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Template
         fields = ['id', 'template_type', 'template_content']
+
+#Serializer for Message History
+class MessageHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MessageHistory
+        fields = '__all__'
+        

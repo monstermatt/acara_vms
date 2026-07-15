@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 import json
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from vms.models import User, Volunteer, VolunteerAbsence, VolunteerAvailability, Visit, VolunteeringPreference, VolunteerSchedule, Recognition, Skill, Language, Template
+from vms.models import User, Volunteer, VolunteerAbsence, VolunteerAvailability, Visit, VolunteeringPreference, VolunteerSchedule, Recognition, Skill, Language, Template, MessageHistory
 from .utils import generate_visits, compute_available_slots_in_a_day, send_email
 from rest_framework.decorators import action
 from datetime import datetime
@@ -24,6 +24,14 @@ from django.contrib.auth import get_user_model
 #AI MATCHING
 from .embed import match_volunteers, rebuild_embeddings
 from django.http import StreamingHttpResponse
+#SMS twilio
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from twilio.rest import Client
+from django.conf import settings
+import logging
 
 # Create your views here.
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -297,3 +305,44 @@ class SendEmailViewSet(viewsets.ViewSet):
 class TemplateViewSet(viewsets.ModelViewSet):
     queryset = Template.objects.all()
     serializer_class = TemplateSerializer 
+
+#SMS routing & views
+class SendSMS(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        volunteer_id = request.data.get('volunteer_id')
+        message_body = request.data.get('message')
+        if not volunteer_id or not message_body:
+            return Response({'error': 'volunteer_id and message are required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            volunteer = Volunteer.objects.get(id=volunteer_id)
+        except Volunteer.DoesNotExist:
+            return Response({'error': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
+        if not volunteer.phone_number:
+            return Response({'error': 'Volunteer does not have a phone number'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            message = client.messages.create(
+                body=message_body,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=volunteer.phone_number
+            )
+            # Log history
+            MessageHistory.objects.create(
+                sender=request.user,
+                recipient=volunteer,
+                phone_number=volunteer.phone_number,
+                message_body=message_body,
+                status=message.status
+            )
+            return Response({'success': True, 'message_sid': message.sid}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error sending SMS: {str(e)}")
+            MessageHistory.objects.create(
+                sender=request.user,
+                recipient=volunteer,
+                phone_number=volunteer.phone_number,
+                message_body=message_body,
+                status='failed'
+            )
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

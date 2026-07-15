@@ -221,3 +221,15 @@ class Notification(models.Model):
         return f"From: {self.sender} | To: {self.recipient} | Subject: {self.subject} | Sent: {self.date_sent}"
     
 
+# Log of every SMS dispatched by the system
+class MessageHistory(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_sms')
+    recipient = models.ForeignKey(Volunteer, on_delete=models.CASCADE, related_name='received_sms')
+    phone_number = models.CharField(max_length=15)
+    message_body = models.TextField()
+    status = models.CharField(max_length=50, default='sent')
+    date_sent = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"From: {self.sender} | To: {self.recipient.user.username} | Sent: {self.date_sent}"
+

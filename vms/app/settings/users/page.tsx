@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from "next-auth/react";
-
+import { EditIcon } from '@/icons';
 
 // HOW a user looks like
 interface User {
