@@ -3,17 +3,28 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #9f0059;
+  --primary-hover: #7a0044;
+  --accent: #cd5000;
+  --background-alt: #f6f0eb;
+  --accent-light: #fdf5ee;
+  --background-hover: #f6f0eb;
+  /* keep old ones for backwards compatibility during migration */
   --primary-maroon: #9f0059;
   --secondary-orange: #cd5000;
-  --background-alt: #f6f0eb;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-background-alt: var(--background-alt);
+  --color-background-hover: var(--background-hover);
   --color-primary-maroon: var(--primary-maroon);
   --color-secondary-orange: var(--secondary-orange);
-  --color-background-alt: var(--background-alt);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -39,15 +50,15 @@ body {
   }
 
   .sidebar-logout {
-    @apply w-full flex items-center justify-center gap-1.5 px-4 bg-[#f6f0eb] text-[#9f0059] py-3 font-medium cursor-pointer border border-[#9f0059];
+    @apply w-full flex items-center justify-center gap-1.5 px-4 bg-background-alt text-primary py-3 font-medium cursor-pointer border border-primary;
   }
 
   .sidebar-element-active {
-    @apply bg-[#9f0059] text-white;
+    @apply bg-primary text-white;
   }
 
   .sidebar-element-hover {
-    @apply text-[#9f0059] hover:bg-[#9f0059] hover:text-white;
+    @apply text-primary hover:bg-primary hover:text-white;
   }
 
   .sidebar-element-headers {
@@ -55,28 +66,28 @@ body {
   }
 
   .sidebar-background {
-    @apply h-screen flex flex-col bg-[#f6f0eb] border-r transition-[width] duration-300 relative z-10;
+    @apply h-screen flex flex-col bg-background-alt border-r transition-[width] duration-300 relative z-10;
   }
 
   .sidebar-acara {
-    @apply text-lg font-bold text-[#9f0059] truncate;
+    @apply text-lg font-bold text-primary truncate;
   }
 
   .sidebar-minimize-btn {
-    @apply absolute -right-3 bg-[#9f0059] rounded-full p-1.5 transition-colors cursor-pointer z-10;
+    @apply absolute -right-3 bg-primary rounded-full p-1.5 transition-colors cursor-pointer z-10;
   }
 
   /* Login page Styles */
   .login-action-btn {
-    @apply fixed bottom-27 -translate-x-0.5 w-full max-w-md bg-[#9f0059] text-white py-3 rounded-3xl font-medium hover:opacity-90 transition-opacity cursor-pointer;
+    @apply fixed bottom-27 -translate-x-0.5 w-full max-w-md bg-primary text-white py-3 rounded-3xl font-medium hover:opacity-90 transition-opacity cursor-pointer;
   }
 
   .login-fields {
-    @apply text-gray-500 w-full px-4 py-3 rounded-3xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9f0059] focus:border-transparent;
+    @apply text-gray-500 w-full px-4 py-3 rounded-3xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
   }
 
   .login-action-link {
-    @apply text-sm text-[#9f0059] underline decoration-[#9f0059] cursor-pointer;
+    @apply text-sm text-primary underline decoration-primary cursor-pointer;
   }
 
   .hide-password {
@@ -87,65 +98,125 @@ body {
     @apply text-red-500 text-xs text-center;
   }
 
-  /* Volunteer  Styles */
-  .main-container {
-    @apply min-h-screen p-10;
-  }
+  /* Component Consolidations */
 
-  .info-card {
-    @apply bg-white p-10 rounded-3xl border border-gray-200;
-  }
-
-  .form-label {
-    @apply font-bold text-gray-900 mb-1 block;
-  }
-
-  .input-style {
-    @apply px-4 py-3 rounded-3xl border border-gray-300 text-gray-700 w-full focus:outline-none focus:ring-1 focus:ring-primary-maroon;
-  }
-
+  /* Typography */
   .page-header {
-    @apply text-3xl font-bold text-primary-maroon mb-1;
+    @apply text-2xl font-bold text-primary mb-1;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-gray-500 mt-1;
   }
 
   .section-header {
-    @apply text-xl font-bold text-primary-maroon mb-1;
+    @apply text-lg font-bold text-gray-900 mb-1;
   }
 
+  .form-label {
+    @apply block text-sm font-semibold text-gray-800 mb-1;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-primary text-white px-8 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50;
+  }
+
+  .btn-outline {
+    @apply px-8 py-3 rounded-full border border-primary text-primary text-sm font-medium hover:bg-background-hover transition-colors cursor-pointer;
+  }
+
+  .btn-action {
+    @apply flex items-center gap-1.5 text-sm transition-colors cursor-pointer;
+  }
+
+  .btn-action-edit {
+    @apply flex items-center gap-1.5 text-sm transition-colors cursor-pointer text-gray-600 hover:text-primary;
+  }
+
+  .btn-action-delete {
+    @apply flex items-center gap-1.5 text-sm transition-colors cursor-pointer text-red-500 hover:text-red-700;
+  }
+
+  /* Old save/cancel for compatibility */
   .btn-save {
-    @apply px-8 py-2.5 rounded-full bg-primary-maroon text-white font-medium hover:opacity-90 transition-opacity;
+    @apply px-8 py-2.5 rounded-full bg-primary text-white font-medium hover:opacity-90 transition-opacity cursor-pointer;
   }
 
   .btn-cancel {
-    @apply px-8 py-2.5 rounded-full border border-primary-maroon text-primary-maroon font-medium hover:bg-gray-50 transition-colors;
+    @apply px-8 py-2.5 rounded-full border border-primary text-primary font-medium hover:bg-gray-50 transition-colors cursor-pointer;
+  }
+
+  /* Forms & Inputs */
+  .input-style {
+    @apply w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary bg-white;
+  }
+
+  .textarea-style {
+    @apply w-full border border-gray-300 px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary bg-white rounded-2xl resize-none;
   }
 
   .input-section {
-    @apply p-6 rounded-xl mb-4 text-gray-500
+    @apply p-6 rounded-xl mb-4 text-gray-500;
   }
 
-  /*general styles*/
-  .page-header {
-    @apply text-2xl font-bold text-[#9f0059] mb-4;
+  /* Data Tables */
+  .table-wrapper {
+    @apply overflow-hidden rounded-xl border border-gray-200 bg-white;
   }
 
-  .active-button {
-    @apply bg-[#9F0059] p-2 m-1 rounded-full border text-white mb-4;
+  .table-header-row {
+    @apply bg-accent-light;
   }
 
-  .inactive-button {
-    @apply bg-[#DEDEDE] p-2 m-1 rounded-full border text-white mb-4;
+  .table-header-cell {
+    @apply px-4 py-3 text-left text-accent font-semibold text-sm;
   }
 
-  .main-container {
-    @apply min-h-screen;
+  .table-cell {
+    @apply px-4 py-4 text-sm text-gray-500;
   }
 
+  .table-row {
+    @apply border-t border-gray-100 hover:bg-gray-50 transition-colors;
+  }
+
+  /* Old table compatibility */
   .table-container {
-    @apply rounded-xl border border-[#DEDEDE] bg-white;
+    @apply rounded-xl border border-gray-200 bg-white;
   }
 
   .thead {
-    @apply text-[#cd5000] font-bold ;
+    @apply text-accent font-bold;
+  }
+
+  /* Layout Containers */
+  .main-container {
+    @apply min-h-screen p-8;
+  }
+
+  .page-container {
+    @apply p-6 max-w-5xl mx-auto space-y-4;
+  }
+
+  .info-card {
+    @apply bg-white rounded-2xl p-6 shadow-sm border border-gray-100;
+  }
+
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto p-4;
+  }
+
+  .modal-content {
+    @apply bg-white rounded-2xl w-full max-w-2xl mx-auto p-8 shadow-xl relative;
+  }
+
+  /* Tabs/Toggle Buttons */
+  .active-button {
+    @apply bg-primary p-2 m-1 rounded-full border text-white mb-4;
+  }
+
+  .inactive-button {
+    @apply bg-gray-200 p-2 m-1 rounded-full border text-white mb-4;
   }
 }

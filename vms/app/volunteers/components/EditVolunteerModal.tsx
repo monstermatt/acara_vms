@@ -313,7 +313,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
     return (
       <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm'>
         <div className="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center">
-          <div className="w-8 h-8 border-4 border-primary-maroon border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-gray-600 font-medium">Loading volunteer data...</p>
         </div>
       </div>
@@ -426,7 +426,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
                           <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Skill
                           </button>
                       ) : (
-                          <input type="text" autoFocus placeholder="Type and press Enter..." value={newSkillInput} onChange={(e) => setNewSkillInput(e.target.value)} onKeyDown={handleAddSkill} onBlur={() => setIsAddingSkill(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#9F0059]" />
+                          <input type="text" autoFocus placeholder="Type and press Enter..." value={newSkillInput} onChange={(e) => setNewSkillInput(e.target.value)} onKeyDown={handleAddSkill} onBlur={() => setIsAddingSkill(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
                       )}
                     </div>
                 </div>
@@ -446,7 +446,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
                           <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Language
                           </button>
                       ) : (
-                          <input type="text" autoFocus placeholder="Type and press Enter..." value={newLanguageInput} onChange={(e) => setNewLanguageInput(e.target.value)} onKeyDown={handleAddLanguage} onBlur={() => setIsAddingLanguage(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#9F0059]" />
+                          <input type="text" autoFocus placeholder="Type and press Enter..." value={newLanguageInput} onChange={(e) => setNewLanguageInput(e.target.value)} onKeyDown={handleAddLanguage} onBlur={() => setIsAddingLanguage(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
                       )}
                     </div>
                 </div>
@@ -465,7 +465,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-2 flex flex-col gap-1">
                         {PREFERENCE_OPTIONS.map((pref) => (
                         <label key={pref.id} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded transition-colors">
-                            <input type="checkbox" checked={selectedPreferenceIds.includes(pref.id)} onChange={() => handlePreferenceToggle(pref.id)} className="w-4 h-4 text-[#9F0059] focus:ring-[#9F0059] rounded border-gray-300" />
+                            <input type="checkbox" checked={selectedPreferenceIds.includes(pref.id)} onChange={() => handlePreferenceToggle(pref.id)} className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" />
                             <span className="text-sm text-gray-700 font-medium">{pref.label}</span>
                         </label>
                         ))}
@@ -484,7 +484,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
                         <input className="input-style" type="number" name="max_distance_preferred" value={formData.max_distance_preferred} onChange={handleChange} />
                     </div>
                     <div className="col-span-full pt-2 flex items-center gap-2">
-                        <input type="checkbox" name="sub_duty_preference" id="sub_duty_preference" checked={formData.sub_duty_preference} onChange={handleChange} className="w-4 h-4 text-[#9F0059] focus:ring-[#9F0059] rounded border-gray-300" />
+                        <input type="checkbox" name="sub_duty_preference" id="sub_duty_preference" checked={formData.sub_duty_preference} onChange={handleChange} className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" />
                         <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>
                     </div>
                 </div>

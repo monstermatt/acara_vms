@@ -120,7 +120,7 @@ export default function MatchPage() {
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-4">
             <div className="flex justify-between mb-8">
-                <h1 className="text-2xl font-bold text-[#9f0059] mb-1">AI Volunteer Matching - *BETA!*</h1>
+                <h1 className="page-header">AI Volunteer Matching - *BETA!*</h1>
 
                 {/* rebuild embedding buttons */}
                 <div className="flex gap-1">
@@ -145,7 +145,7 @@ export default function MatchPage() {
             <div className="gap-1 mb-5">
                 <h2
                     onClick={() => setOpen(!open)}
-                    className="flex text-[#9f0059] opacity-69 font-bold italic space-y-1">
+                    className="flex text-primary opacity-69 font-bold italic space-y-1">
                     *This feature is experimental and is currently under development. <br /> 
                     Please click this message to review notes for the best experience.* 
                     {open ? < ChevronUp className="w-9 h-9"/> : < ChevronDown className="w-9 h-9"/>}
@@ -158,14 +158,14 @@ export default function MatchPage() {
                             <li><span className='text-green-600 font-semibold'>Rebuild All</span> ensures all existing volunteer profiles and all (if any) recent changes to them are accounted for in the feature.</li>
                         </ul>
                         <li>Before using this feature, it is recommended to press the <span className='text-green-600 font-semibold'>Rebuild All</span> button in order to provide the best matches.</li>
-                        <li>Otherwise, using this feature is very straightforward - simply write a description of your ideal volunteer candidate in the text box (e.g. I need a volunteer that ...) and click <span className='text-[#9f0059] font-semibold'>Find Matches</span> to find the best matches!</li>
+                        <li>Otherwise, using this feature is very straightforward - simply write a description of your ideal volunteer candidate in the text box (e.g. I need a volunteer that ...) and click <span className='text-primary font-semibold'>Find Matches</span> to find the best matches!</li>
                         <li>If you recieve a <span className='font-semibold'>"Rebuild failed"</span> or <span className='font-semibold'>"Rebuild Complete! Success: 0, Skipped: 0, Failed: 3 (or number of volunteers)"</span> popup when using the rebuild buttons <span className='font-bold'>AND</span> a <span className='text-red-700 font-semibold'>"name 'UserEmbedding' is not defined"</span> or <span className='text-red-700 font-semibold'>"Something went wrong, please try again"</span> error when using the feature, this feature may not have been enabled. Please contact your IT administrator.</li>
                     </ul>
                 )}
                 
             </div>
 
-            <h2 className="text-xl font-bold text-[#9f0059] mb-6">What volunteer are you looking for today?</h2>
+            <h2 className="section-header mb-6">What volunteer are you looking for today?</h2>
             <div className="flex gap-3 mb-8">
                 <textarea
                     value={request}
@@ -189,7 +189,7 @@ export default function MatchPage() {
                 <button
                     onClick={handleMatch}
                     disabled={loading || !request.trim()}
-                    className="w-sm bg-[#9f0059] text-white py-3 rounded-3xl font-medium hover:opacity-90 transition-opacity cursor-pointer"
+                    className="btn-primary w-sm"
                 >
                     {loading ? 'Searching...' : 'Find Matches'}
                 </button>
@@ -226,7 +226,7 @@ export default function MatchPage() {
 
                             {/* displaying volunteer identification data for clarity */}
                             <div className="flex items-center gap-4">
-                                <span className="w-7 h-7 rounded-full bg-[#9f0059] text-white text-xs font-bold flex items-center justify-center">
+                                <span className="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
                                     {match.rank}
                                 </span>
                                 <div>
@@ -245,7 +245,7 @@ export default function MatchPage() {
                                 </span>
                                <button
                                     onClick={() => setBookingVolunteer(match)}
-                                    className="bg-[#9f0059] hover:bg-[#7a0044] text-white px-4 py-1.5 rounded-lg text-sm transition-colors"
+                                    className="bg-primary hover:bg-primary-hover text-white px-4 py-1.5 rounded-lg text-sm transition-colors"
                                 >
                                     Book
                                 </button>

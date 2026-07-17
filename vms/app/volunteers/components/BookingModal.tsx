@@ -154,18 +154,18 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
             {isSuccess ? (
                 // SUCCESS SCREEN
                 <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl p-12 flex flex-col items-center relative transition-all duration-300 transform scale-100">
-                <h2 className="text-4xl font-bold text-[#9F0059] mb-3 text-center">Appointment Confirmed</h2>
+                <h2 className="text-4xl font-bold text-primary mb-3 text-center">Appointment Confirmed</h2>
                 <p className="text-gray-500 mb-8 text-center text-lg">Congratulations, you booked an appointment with:</p>
                 
                 <div className="w-40 h-40 rounded-full bg-gray-200 mb-4 overflow-hidden shadow-md border-4 border-white outline outline-1 outline-gray-200">
                     <img src={`https://ui-avatars.com/api/?name=${volunteerName}&background=random&size=200`} alt={volunteerName} className="object-cover w-full h-full" />
                 </div>
-                <h3 className="text-xl font-bold text-[#9F0059] text-center mb-10">{volunteerName}</h3>
+                <h3 className="text-xl font-bold text-primary text-center mb-10">{volunteerName}</h3>
                 
                 <button 
                     type="button" 
                     onClick={onClose} 
-                    className="bg-[#9F0059] text-white px-16 py-3 rounded-full font-bold hover:bg-[#7a0044] transition-colors text-lg shadow-md"
+                    className="btn-primary px-16 text-lg shadow-md"
                 >
                     Close
                 </button>
@@ -178,7 +178,7 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
                 <div className="bg-white p-8 rounded-3xl max-w-3xl relative">
                 
                     {/* Header */}
-                    <h2 className="text-4xl font-bold text-[#9F0059] mb-2">Book appointment</h2>
+                    <h2 className="text-4xl font-bold text-primary mb-2">Book appointment</h2>
                     <p className="text-gray-500 mb-10 text-lg">Fill in the form to book an appointment with:</p>
 
                     {error && <div className="mb-4 text-red-600 bg-red-50 p-3 rounded-md">{error}</div>}
@@ -191,7 +191,7 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
                                 {/* Replace with actual volunteer image if available */}
                                 <img src={`https://ui-avatars.com/api/?name=${volunteerName}&background=random&size=200`} alt={volunteerName} className="object-cover w-full h-full" />
                             </div>
-                            <h3 className="text-xl font-bold text-[#9F0059] text-center">{volunteerName}</h3>
+                            <h3 className="text-xl font-bold text-primary text-center">{volunteerName}</h3>
                         </div>
 
                         {/* Right Column: Form Container */}
@@ -230,7 +230,7 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
                                                                 setEndTime(slot.end_time.slice(0, 5));
                                                                 setError('');
                                                             }}
-                                                            className="text-xs font-semibold bg-pink-50 text-[#9F0059] border border-[#9F0059] px-3 py-1.5 rounded-md hover:bg-[#9F0059] hover:text-white transition-colors"
+                                                            className="text-xs font-semibold bg-pink-50 text-primary border border-primary px-3 py-1.5 rounded-md hover:bg-primary hover:text-white transition-colors"
                                                         >
                                                             {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                                                         </button>
@@ -297,14 +297,14 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
                                 <div className="flex gap-4">
                                     <button 
                                     type="submit" 
-                                    className="bg-[#9F0059] text-white px-10 py-3 rounded-full font-bold hover:bg-[#7a0044] transition-colors w-40"
+                                    className="btn-primary w-40"
                                     >
                                     Book
                                     </button>
                                     <button 
                                     type="button" 
                                     onClick={onClose} 
-                                    className="bg-white text-[#9F0059] border border-[#9F0059] px-10 py-3 rounded-full font-bold hover:bg-pink-50 transition-colors w-40"
+                                    className="btn-outline w-40 font-bold"
                                     >
                                     Cancel
                                     </button>

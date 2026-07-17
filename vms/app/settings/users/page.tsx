@@ -60,7 +60,7 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => voi
     <button
       onClick={onChange}
       className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors cursor-pointer ${
-        checked ? 'bg-[#cd5000] border-[#cd5000]' : 'border-gray-400 bg-white'
+        checked ? 'bg-accent border-accent' : 'border-gray-400 bg-white'
       }`}
     >
       {checked && (
@@ -89,7 +89,7 @@ function RoleDropdown({ value, onChange }: { value: string; onChange: (r: string
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#9f0059] bg-white cursor-pointer"
+        className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-primary bg-white cursor-pointer"
       >
         <span className={value ? 'text-gray-700' : 'text-gray-400'}>
           {value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Select a role'}
@@ -159,7 +159,7 @@ function AvatarPicker({ preview, onChange }: { preview: string | null; onChange:
       <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFile} className="hidden" />
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#9f0059] cursor-pointer"
+        className="flex items-center gap-1 text-sm text-gray-500 hover:text-primary cursor-pointer"
       >
         <EditIcon />
         Edit
@@ -395,12 +395,12 @@ function UsersListView({
     <div>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#9f0059]">Users</h1>
+          <h1 className="page-header">Users</h1>
           <p className="text-sm text-gray-500 mt-1">There are {totalCount} users in the system</p>
         </div>
         <button
           onClick={onAddNew}
-          className="flex items-center gap-2 bg-[#9f0059] text-white px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+          className="btn-primary flex items-center gap-2"
         >
           + Add New
         </button>
@@ -409,7 +409,7 @@ function UsersListView({
 
 
       {/* table container — same class as messages page */}
-      <div className="table-container p-6">
+      <div className="table-wrapper p-6 mt-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">All users</h2>
 
@@ -446,7 +446,7 @@ function UsersListView({
                 placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-8 pr-4 py-2 border border-gray-300 rounded-full text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059] w-48"
+                className="pl-8 pr-4 py-2 border border-gray-300 rounded-full text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary w-48"
               />
             </div>
           </div>
@@ -457,15 +457,15 @@ function UsersListView({
         <div className="overflow-hidden rounded-xl border border-gray-200">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#fdf5ee]">
+              <tr className="table-header-row">
                 <th className="w-12 px-4 py-3 text-left">
                   <Checkbox checked={allSelected} onChange={toggleSelectAll} />
                 </th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Name</th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Surname</th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Email</th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Role</th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Actions</th>
+                <th className="table-header-cell">Name</th>
+                <th className="table-header-cell">Surname</th>
+                <th className="table-header-cell">Email</th>
+                <th className="table-header-cell">Role</th>
+                <th className="table-header-cell">Actions</th>
               </tr>
 
             </thead>
@@ -475,21 +475,25 @@ function UsersListView({
                   <td colSpan={6} className="px-4 py-8 text-center text-gray-400">No users found.</td>
                 </tr>
               ) : (
-                users.map((user) => (
-                  <tr key={user.id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4">
-                      <Checkbox checked={selectedIds.has(user.id)} onChange={() => toggleSelect(user.id)} />
+                users.map((u) => (
+                  <tr key={u.id} className="table-row">
+                    {/* row checkbox */}
+                    <td className="table-cell">
+                      <Checkbox
+                        checked={selectedIds.has(u.id)}
+                        onChange={() => toggleSelect(u.id)}
+                      />
                     </td>
-                    <td className="px-4 py-4 text-gray-500">{user.first_name}</td>
-                    <td className="px-4 py-4 text-gray-500">{user.last_name}</td>
-                    <td className="px-4 py-4 text-gray-500">{user.email}</td>
-                    <td className="px-4 py-4 text-gray-500">
-                      {ROLE_LABELS[user.role] || user.role} {/*display the label, not the raw value*/}
+                    <td className="table-cell text-gray-800 font-medium">
+                      {u.first_name || '-'}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="table-cell">{u.last_name || '-'}</td>
+                    <td className="table-cell">{u.email}</td>
+                    <td className="table-cell">{u.role}</td>
+                    <td className="table-cell">
                       <button
-                        onClick={() => onEdit(user)}
-                        className="flex items-center gap-1.5 text-gray-600 hover:text-[#9f0059] transition-colors cursor-pointer text-sm"
+                        onClick={() => onEdit(u)}
+                        className="btn-action-edit"
                       >
                         <EditIcon />
                         Edit
@@ -636,7 +640,7 @@ const handleSave = async () => {
               <input
                 type="text" placeholder="Name*" value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059]"
+                className="input-style"
               />
               {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
             </div>
@@ -645,7 +649,7 @@ const handleSave = async () => {
               <input
                 type="text" placeholder="Surname*" value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059]"
+                className="input-style"
               />
               {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
             </div>
@@ -660,7 +664,7 @@ const handleSave = async () => {
               <input
                 type="email" placeholder="Email*" value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059]"
+                className="input-style"
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
@@ -673,7 +677,7 @@ const handleSave = async () => {
           <div className="flex justify-end">
             <button
               onClick={handleSave}
-              className="bg-[#9f0059] text-white px-10 py-3 rounded-full font-medium hover:opacity-90 transition-opacity cursor-pointer"
+              className="btn-primary px-10"
             >
               Save
             </button>
@@ -811,7 +815,7 @@ const {data: session } = useSession(); // set variable for the session to get th
               <input
                 type="text" value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059]"
+                className="input-style"
               />
               {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
             </div>
@@ -820,7 +824,7 @@ const {data: session } = useSession(); // set variable for the session to get th
               <input
                 type="text" value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059]"
+                className="input-style"
               />
               {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
             </div>
@@ -833,7 +837,7 @@ const {data: session } = useSession(); // set variable for the session to get th
               <input
                 type="email" value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059]"
+                className="input-style"
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
@@ -852,7 +856,7 @@ const {data: session } = useSession(); // set variable for the session to get th
             </button>
             <button
               onClick={handleSave}
-              className="bg-[#9f0059] text-white px-10 py-3 rounded-full font-medium hover:opacity-90 transition-opacity cursor-pointer"
+              className="btn-primary px-10"
             >
               Save
             </button>

@@ -37,7 +37,7 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => voi
     <button
       onClick={onChange}
       className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors cursor-pointer ${
-        checked ? 'bg-[#cd5000] border-[#cd5000]' : 'border-gray-400 bg-white'
+        checked ? 'bg-accent border-accent' : 'border-gray-400 bg-white'
       }`}
     >
       {/* Only render the checkmark SVG icon when the box is really ticked */}
@@ -83,7 +83,7 @@ function TemplateModal({ mode, initialTitle = '', initialMessage = '', onSave, o
 
 
         {/* The heading and subtitle text change depending on whether we are creating or editing something */}
-        <h2 className="text-2xl font-bold text-[#9f0059] mb-1">
+        <h2 className="page-header">
           {isCreate ? 'Create Template' : 'Edit Template'}
         </h2>
         <p className="text-sm text-gray-500 mb-6">
@@ -99,7 +99,7 @@ function TemplateModal({ mode, initialTitle = '', initialMessage = '', onSave, o
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Type something..."
-          className="w-full border border-gray-300 rounded-full px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059] mb-5"
+          className="input-style mb-5"
         />
 
         {/* Message textarea - this updates the local "message" state on every keystroke */}
@@ -109,14 +109,14 @@ function TemplateModal({ mode, initialTitle = '', initialMessage = '', onSave, o
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type something..."
           rows={7}
-          className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059] resize-none mb-8"
+          className="textarea-style mb-8"
         />
 
         {/* for cancel and  and the save button */}
         <div className="flex justify-end gap-4">
           <button
             onClick={onCancel}
-            className="px-8 py-3 rounded-full border border-[#9f0059] text-[#9f0059] text-sm font-medium hover:bg-[#f6f0eb] transition-colors cursor-pointer"
+            className="btn-outline"
           >
             Cancel
           </button>
@@ -128,7 +128,7 @@ function TemplateModal({ mode, initialTitle = '', initialMessage = '', onSave, o
                 onSave(title.trim(), message.trim());
               }
             }}
-            className="px-8 py-3 rounded-full bg-[#9f0059] text-white text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+            className="btn-primary"
           >
             Save
           </button>
@@ -371,7 +371,7 @@ export default function MessagesPage() {
       {/* Page header: title, subtitle with template count, and the Add New button */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#9f0059]">Message Template</h1>
+          <h1 className="page-header">Message Template</h1>
           <p className="text-sm text-gray-500 mt-1">
             There {templates.length === 1 ? 'is' : 'are'} {templates.length} Message template{templates.length !== 1 ? 's' : ''} in the system
           </p>
@@ -380,7 +380,7 @@ export default function MessagesPage() {
         {/* Clicking this button sets modalMode to "create" which renders the Create modal below */}
         <button
           onClick={() => setModalMode('create')}
-          className="flex items-center gap-2 bg-[#9f0059] text-white px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
+          className="btn-primary flex items-center gap-2"
         >
           <span className="text-lg leading-none">+</span>
           Add New
@@ -388,7 +388,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Table container */}
-      <div className="table-container p-6">
+      <div className="table-wrapper p-6 mt-4">
 
         {/* Toolbar above the table: "All Templates" heading, Delete button, Search input */}
         <div className="flex items-center justify-between mb-4">
@@ -430,7 +430,7 @@ export default function MessagesPage() {
                 placeholder="Search"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                className="pl-8 pr-4 py-2 border border-gray-300 rounded-full text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9f0059] w-48"
+                className="pl-8 pr-4 py-2 border border-gray-300 rounded-full text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary w-48"
               />
             </div>
           </div>
@@ -440,14 +440,14 @@ export default function MessagesPage() {
         <div className="overflow-hidden rounded-xl border border-gray-200">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#fdf5ee]">
+              <tr className="table-header-row">
                 {/* Header checkbox: ticking this selects OR deselects all visible rows AT ONCE */}
                 <th className="w-12 px-4 py-3 text-left">
                   <Checkbox checked={allSelected} onChange={toggleSelectAll} />
                 </th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Title</th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Message</th>
-                <th className="px-4 py-3 text-left text-[#cd5000] font-semibold">Actions</th>
+                <th className="table-header-cell">Title</th>
+                <th className="table-header-cell">Message</th>
+                <th className="table-header-cell">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -461,10 +461,10 @@ export default function MessagesPage() {
               ) : (
                 // Render one row per template
                 filteredTemplates.map((template) => (
-                  <tr key={template.id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                  <tr key={template.id} className="table-row">
 
                     {/* Row checkbox — ticking this adds the template's ID to selectedIds */}
-                    <td className="px-4 py-4">
+                    <td className="table-cell">
                       <Checkbox
                         checked={selectedIds.has(template.id)}
                         onChange={() => toggleSelect(template.id)}
@@ -472,13 +472,13 @@ export default function MessagesPage() {
                     </td>
 
                     {/* Title column - in the API this field is called template_type */}
-                    <td className="px-4 py-4 text-gray-800 font-medium w-1/3">
+                    <td className="table-cell text-gray-800 font-medium w-1/3">
                       {template.template_type}
                     </td>
 
                     {/* Message preview - truncated to 60 characters to keep the table readable.
                         In the API this field is called "template_content" */}
-                    <td className="px-4 py-4 text-gray-500">
+                    <td className="table-cell">
                       {template.template_content.length > 60
                         ? template.template_content.slice(0, 60) + '...'
                         : template.template_content}
@@ -486,10 +486,10 @@ export default function MessagesPage() {
 
                     {/* EDIT Button — clicking this stores the template in editingTemplate
                         and opens the Edit modal pre-filled with its current values */}
-                    <td className="px-4 py-4">
+                    <td className="table-cell">
                       <button
                         onClick={() => openEdit(template)}
-                        className="flex items-center gap-1.5 text-gray-600 hover:text-[#9f0059] transition-colors cursor-pointer text-sm"
+                        className="btn-action-edit"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />

@@ -54,7 +54,7 @@ const SidebarElements = ({ label, icon, active, onClick, collapsed }: SidebarEle
       className={`sidebar-elements ${active
           ? 'sidebar-element-active'
           : 'sidebar-element-hover'
-        } ${collapsed ? 'border border-[#9f0059] rounded-2xl py-3' : 'border-transparent'}`
+        } ${collapsed ? 'border border-primary rounded-2xl py-3' : 'border-transparent'}`
       }
     >
       {icon && <span className="shrink-0">{icon}</span>}

@@ -316,7 +316,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                 <div className="w-40 h-40 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 mb-4 border border-gray-300">
                   <UserIcon size={64} className="text-gray-500" strokeWidth={1} />
                 </div>
-                <button type="button" className="flex items-center gap-2 text-gray-600 hover:text-primary-maroon font-medium text-sm">
+                <button type="button" className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium text-sm">
                   <EditIcon size={16} /> Edit
                 </button>
               </div>
@@ -439,7 +439,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                                 onChange={(e) => setNewSkillInput(e.target.value)}
                                 onKeyDown={handleAddSkill}
                                 onBlur={() => setIsAddingSkill(false)} // Hides input if they click away
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-[#9F0059]"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary"
                             />
                             </div>
                         )}
@@ -491,7 +491,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                                 onChange={(e) => setNewLanguageInput(e.target.value)}
                                 onKeyDown={handleAddLanguage}
                                 onBlur={() => setIsAddingLanguage(false)} // Hides input if they click away
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-[#9F0059]"
+                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary"
                             />
                             </div>
                         )}
@@ -532,7 +532,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                                 type="checkbox"
                                 checked={selectedPreferenceIds.includes(pref.id)}
                                 onChange={() => handlePreferenceToggle(pref.id)}
-                                className="w-4 h-4 text-[#9F0059] focus:ring-[#9F0059] rounded border-gray-300"
+                                className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300"
                                 />
                                 <span className="text-sm text-gray-700 font-medium">{pref.label}</span>
                             </label>
@@ -559,7 +559,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                             name="sub_duty_preference"
                             checked={formData.sub_duty_preference }
                             onChange={(e) => setFormData(prev => ({ ...prev, sub_duty_preference: e.target.checked }))}
-                            className="w-4 h-4 text-primary-maroon focus:ring-primary-maroon rounded border-gray-300" 
+                            className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" 
                         />
                         <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>                    
                     </div>
