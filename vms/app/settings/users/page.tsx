@@ -12,7 +12,7 @@ interface User {
   first_name: string;
   last_name: string;
   is_active?: boolean;
-  role: 'VOLUN' | 'COORD' | 'ADMIN'; 
+  role: 'VOLUN' | 'COORD' | 'ADMIN';
   avatar?: string;
 }
 
@@ -30,15 +30,6 @@ const ROLE_LABELS: Record<string, string> = { //define the labels for the roles 
 //   { id: 1, first_name: 'Name', last_name: 'Surname', email: 'email@domain.com', role: 'COORD' },
 // ];
 
-// The pencil icon — same as in messages page
-function EditIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  );
-}
 
 // The trash icon — same as in messages page
 function TrashIcon() {
@@ -59,9 +50,8 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => voi
   return (
     <button
       onClick={onChange}
-      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors cursor-pointer ${
-        checked ? 'bg-accent border-accent' : 'border-gray-400 bg-white'
-      }`}
+      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors cursor-pointer ${checked ? 'bg-accent border-accent' : 'border-gray-400 bg-white'
+        }`}
     >
       {checked && (
         <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
@@ -186,7 +176,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
 }
 
 // THIS IS THE MAIN page, decides which view to show
-export default function UsersPage() { 
+export default function UsersPage() {
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [users, setUsers] = useState<User[]>([]); // this will hold the users data, initially empty until we fetch from the API;
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -215,7 +205,7 @@ export default function UsersPage() {
         if (!response.ok) throw new Error(`Failed to fetch users. (Status: ${response.status})`);
         const data = await response.json();
 
-      if (Array.isArray(data)) { // if the API returns a plain array of users
+        if (Array.isArray(data)) { // if the API returns a plain array of users
           setUsers(data);
         } else if (data && data.results) {
           setUsers(data.results);
@@ -266,7 +256,7 @@ export default function UsersPage() {
 
   const handleUserDeleted = async (userId: number) => {
     if (!token) return; // if no token, don't attempt to delete
-    
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${userId}/`, {
         method: "DELETE",
@@ -280,7 +270,7 @@ export default function UsersPage() {
       // Update local state only after successful backend deletion
       setUsers((prev) => prev.filter((u) => u.id !== userId));
       setView('list');
-      
+
     } catch (err: any) {
       console.error(err);
       // UI error state
@@ -310,7 +300,7 @@ export default function UsersPage() {
 
       // Update local state after all backend deletions succeed
       setUsers((prev) => prev.filter((u) => !ids.includes(u.id)));
-      
+
     } catch (err: any) {
       console.error(err);
       alert("There was an error deleting some users. Please refresh the page to see the current state.");
@@ -328,7 +318,7 @@ export default function UsersPage() {
           onAddNew={() => setView('create')}
           onEdit={handleEditClick}
           // Replace the inline function with your new async function
-          onDeleteMultiple={handleMultipleUsersDeleted} 
+          onDeleteMultiple={handleMultipleUsersDeleted}
         />
       )}
       {view === 'create' && (
@@ -530,43 +520,43 @@ function CreateUserView({ onBack, onSave }: { onBack: () => void; onSave: (u: Us
   };
 
 
-const { data: session } = useSession(); // set variable for the session to get the token for authentication when hitting the API
+  const { data: session } = useSession(); // set variable for the session to get the token for authentication when hitting the API
 
-const handleSave = async () => {
-  const token = (session as any)?.accessToken; //extract token from nextauth session
-  
-  const errs = validate();
-  if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-  
-  // Create the Base User (Runs for everyone: admins, coordinators, volunteers)
-  try {
-    const userPayload = {
-      username: email,
-      email: email,
-      first_name: firstName,
-      last_name: lastName,
-      role: role // 'admin', 'coordinator', or 'volunteer'
-    };
+  const handleSave = async () => {
+    const token = (session as any)?.accessToken; //extract token from nextauth session
 
-    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/`, {
-      method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+    // Create the Base User (Runs for everyone: admins, coordinators, volunteers)
+    try {
+      const userPayload = {
+        username: email,
+        email: email,
+        first_name: firstName,
+        last_name: lastName,
+        role: role // 'admin', 'coordinator', or 'volunteer'
+      };
+
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}` // pass the token in the header for authentication
         },
         body: JSON.stringify(userPayload),
-    });
+      });
 
-    if (!userResponse.ok) throw new Error("Failed to create base user.");
-    const createdUser = await userResponse.json();
+      if (!userResponse.ok) throw new Error("Failed to create base user.");
+      const createdUser = await userResponse.json();
 
-    if (role === 'VOLUN') {
-      const volunteerPayload ={
-        user_id: createdUser.id,
-        phone_number: "555-555-5555",
-        address: "TBD",
+      if (role === 'VOLUN') {
+        const volunteerPayload = {
+          user_id: createdUser.id,
+          phone_number: "555-555-5555",
+          address: "TBD",
         };
-        
+
         try {
           const volResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
             method: "POST",
@@ -578,7 +568,7 @@ const handleSave = async () => {
           });
 
           if (!volResponse.ok) {
-          console.warn("Base user created, but Volunteer profile failed:", await volResponse.text());
+            console.warn("Base user created, but Volunteer profile failed:", await volResponse.text());
           } else {
             console.log("Volunteer profile successfully linked to user.");
           }
@@ -587,38 +577,38 @@ const handleSave = async () => {
         }
       }
 
-    try{
-      const emailResponse = await fetch('/api/forgot-password/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({email: createdUser.email}), // send the email to trigger the password setup flow
+      try {
+        const emailResponse = await fetch('/api/forgot-password/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: createdUser.email }), // send the email to trigger the password setup flow
         });
         if (!emailResponse.ok) {
-          console.warn( "User created but email endpoint returned an error:", await emailResponse.text());
+          console.warn("User created but email endpoint returned an error:", await emailResponse.text());
         } else {
           console.log("Password setup email triggered successfully for", createdUser.email);
         }
-      }catch (emailErr) {
+      } catch (emailErr) {
         console.error("Network error while triggering password setup email:", emailErr);
       }
 
-    onSave({
-      id: createdUser.id,
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
-      role: role as User['role'],
-      // avatar logic...
-    });
+      onSave({
+        id: createdUser.id,
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        role: role as User['role'],
+        // avatar logic...
+      });
 
-  } catch (err) {
-    console.error(err);
-    const message = err instanceof Error ? err.message : String(err);
-    alert("There was an error creating the user: " + message);
-  }
-};
+    } catch (err) {
+      console.error(err);
+      const message = err instanceof Error ? err.message : String(err);
+      alert("There was an error creating the user: " + message);
+    }
+  };
   return (
     <div>
       <div className="flex items-center gap-4 mb-2">
@@ -709,7 +699,7 @@ function EditUserView({
   const [avatar, setAvatar] = useState<string | null>(user.avatar || null);
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
-const {data: session } = useSession(); // set variable for the session to get the token for authentication when hitting the API
+  const { data: session } = useSession(); // set variable for the session to get the token for authentication when hitting the API
 
 
   const validate = () => {
@@ -734,7 +724,7 @@ const {data: session } = useSession(); // set variable for the session to get th
       role: role,
     };
 
-    try{
+    try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${user.id}/`, {
         method: "PATCH", // use PATCH for partial update
         headers: {
@@ -751,7 +741,7 @@ const {data: session } = useSession(); // set variable for the session to get th
       // Only fire this if they are set to Volunteer AND weren't a Volunteer before
       if (role === 'VOLUN' && user.role !== 'VOLUN') {
         const volunteerPayload = {
-          user_id: user.id, 
+          user_id: user.id,
           phone_number: "555-555-5555", // Placeholders for required fields
           address: "TBD",
         };
