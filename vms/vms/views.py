@@ -307,42 +307,36 @@ class TemplateViewSet(viewsets.ModelViewSet):
     serializer_class = TemplateSerializer 
 
 #SMS routing & views
-class SendSMS(APIView):
-    permission_classes = [IsAuthenticated]
+
+logger =logging.getLogger(__name__)
+
+class SendMessageView(APIView):
     def post(self, request):
-        volunteer_id = request.data.get('volunteer_id')
+        volunteer_id = request.data.get('volunteerId')
         message_body = request.data.get('message')
         if not volunteer_id or not message_body:
-            return Response({'error': 'volunteer_id and message are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Volunteer ID and message are required.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             volunteer = Volunteer.objects.get(id=volunteer_id)
-        except Volunteer.DoesNotExist:
-            return Response({'error': 'Volunteer not found'}, status=status.HTTP_404_NOT_FOUND)
-        if not volunteer.phone_number:
-            return Response({'error': 'Volunteer does not have a phone number'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
+            phone_number = volunteer.phone_number
+            if not phone_number:
+                return Response({'error': 'Volunteer does not have a phone number.'}, status=status.HTTP_400_BAD_REQUEST)
+            # Ensure phone number is in E.164 format (e.g., +1234567890)
+            if not phone_number.startswith('+'):
+                # Assuming US number for example, you might need better formatting logic
+                phone_number = '+1' + ''.join(filter(str.isdigit, phone_number))
+            # Initialize Twilio client
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            # Send the message
             message = client.messages.create(
                 body=message_body,
                 from_=settings.TWILIO_PHONE_NUMBER,
-                to=volunteer.phone_number
+                to=phone_number
             )
-            # Log history
-            MessageHistory.objects.create(
-                sender=request.user,
-                recipient=volunteer,
-                phone_number=volunteer.phone_number,
-                message_body=message_body,
-                status=message.status
-            )
-            return Response({'success': True, 'message_sid': message.sid}, status=status.HTTP_200_OK)
+            logger.info(f"Sent SMS to {phone_number}. SID: {message.sid}")
+            return Response({'status': 'Message sent successfully.'}, status=status.HTTP_200_OK)
+        except Volunteer.DoesNotExist:
+            return Response({'error': 'Volunteer not found.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            logger.error(f"Error sending SMS: {str(e)}")
-            MessageHistory.objects.create(
-                sender=request.user,
-                recipient=volunteer,
-                phone_number=volunteer.phone_number,
-                message_body=message_body,
-                status='failed'
-            )
+            logger.error(f"Failed to send SMS: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

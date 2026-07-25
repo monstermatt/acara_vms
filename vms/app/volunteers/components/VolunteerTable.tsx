@@ -5,15 +5,16 @@ import { UserData } from "@/app/volunteers/types/volunteer";
 import { MessageIcon, CalendarIcon } from "@/icons";
 import BookingModal from "./BookingModal";
 import { EditIcon, DeleteIcon } from "@/icons";
-import {  useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { set } from "date-fns";
+import MessageModal from "@/app/components/MessageModal"
 
 const trStyle = { border: "1px solid #DEDEDE", background: "#FFF" };
 const tbodyStyle = { color: "#494949", fontFamily: "Quicksand", textAlign: "center" as const };
 
 interface VolunteerTableProps {
   data: UserData[];
-  onDelete: (deletedIds: number[]) => void; 
+  onDelete: (deletedIds: number[]) => void;
   onEdit: (id: number) => void;
 }
 //default columns
@@ -36,8 +37,10 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedVolunteer, setSelectedVolunteer] = useState<{ id: number; name: string } | null>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
-  const {data: session} = useSession();
+  const { data: session } = useSession();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messageRecipient, setMessageRecipient] = useState<{ id: number; name: string; phone?: string } | null>(null);
 
   //boooking modal handlers
   const openBookingModal = (volunteer: UserData) => {
@@ -57,11 +60,30 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
     console.log('Booking successful');
   };
 
+  const openMessageModal = (volunteer: UserData) => {
+    setMessageRecipient({
+      id: volunteer.id,
+      name: `${volunteer.user?.first_name} ${volunteer.user?.last_name}`,
+      phone: volunteer.phone_number,
+    });
+    setIsMessageModalOpen(true);
+  };
+
+  const closeMessageModal = () => {
+    setIsMessageModalOpen(false);
+    setMessageRecipient(null);
+  };
+
+  const handleMessageSuccess = () => {
+    console.log('Message sent successfully');
+    alert("Message sent successfully");
+  };
+
   //Check if they have saved preferences from a previous visit
   useEffect(() => {
     setIsMounted(true);
     const savedColumns = localStorage.getItem("volunteerTablePreferences");
-    
+
     if (savedColumns) {
       try {
         setColumns(JSON.parse(savedColumns));
@@ -103,8 +125,8 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
   };
 
   const handleSelectRow = (id: number) => {
-    setSelectedRows((prev) => 
-      prev.includes(id) 
+    setSelectedRows((prev) =>
+      prev.includes(id)
         ? prev.filter((rowId) => rowId !== id) // Remove if already selected
         : [...prev, id] // Add if not selected
     );
@@ -113,13 +135,13 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
   // Handle Delete API Call
   const handleDeleteSelected = async () => {
     if (!confirm(`Are you sure you want to delete ${selectedRows.length} volunteer(s)?`)) return;
-    
+
     setIsDeleting(true);
     const token = (session as any)?.accessToken;
 
     try {
       // Execute DELETE requests for all selected IDs concurrently
-      const deletePromises = selectedRows.map(id => 
+      const deletePromises = selectedRows.map(id =>
         fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/${id}/`, {
           method: "DELETE",
           headers: {
@@ -129,7 +151,7 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
       );
 
       const responses = await Promise.all(deletePromises);
-      
+
       // Check if any failed
       const failed = responses.filter(res => !res.ok);
       if (failed.length > 0) {
@@ -160,28 +182,39 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
           onSuccess={handleBookingSuccess}
         />
       )}
-      
+      {/* Render the Message Modal */}
+      {isMessageModalOpen && messageRecipient && (
+        <MessageModal
+          volunteerId={messageRecipient.id}
+          volunteerName={messageRecipient.name}
+          phoneNumber={messageRecipient.phone}
+          onClose={closeMessageModal}
+          onSuccess={handleMessageSuccess}
+        />
+      )}
+
+
       {/* Top Action Bar (Edit/Delete + Column Controls) */}
       <div className="flex justify-end items-center relative">
-        
+
         <div className="flex items-center gap-4">
           {selectedRows.length > 0 && (
             <div className="flex items-center gap-4 border-r pr-4 border-gray-300">
 
               {/*Show edit button only if exactly 1 row is selected */}
               {selectedRows.length === 1 && (
+                <button
+                  onClick={() => onEdit(selectedRows[0])}
+                  className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors">
+                  <EditIcon />
+                  Edit
+                </button>
+              )}
+              {/* Show delete button if 1 or more rows are selected */}
               <button
-              onClick={() => onEdit(selectedRows[0])}
-              className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors">
-                <EditIcon />
-                Edit
-              </button>
-            )}
-            {/* Show delete button if 1 or more rows are selected */}
-              <button
-              className="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors"
-              onClick={handleDeleteSelected}
-              disabled ={isDeleting}>
+                className="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-800 transition-colors"
+                onClick={handleDeleteSelected}
+                disabled={isDeleting}>
                 <DeleteIcon />
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>
@@ -206,7 +239,7 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
               {Object.keys(columns).map((key) => {
                 const colKey = key as keyof typeof columns;
                 const label = colKey.charAt(0).toUpperCase() + colKey.slice(1).replace(/([A-Z])/g, ' $1');
-                
+
                 return (
                   <label key={colKey} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                     <input
@@ -229,7 +262,7 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
         <table className="w-full min-w-max">
           <thead className='thead'>
             <tr>
-              <th className = "px-4 py-2 text-center w-12">
+              <th className="px-4 py-2 text-center w-12">
                 <input
                   type='checkbox'
                   checked={data.length > 0 && selectedRows.length === data.length}
@@ -237,11 +270,11 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
                   className="w-4 h-4 rounded border-gray-300 accent-[#cd5000] cursor-pointer"
                 />
               </th>
-            
-            
+
+
               {/* Name is always visible */}
               <th>Name</th>
-              
+
               {/* Conditionally rendered headers */}
               {columns.phone && <th>Phone Number</th>}
               {columns.gender && <th>Gender</th>}
@@ -252,7 +285,7 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
               {columns.preferences && <th>Preferences</th>}
               {columns.distance && <th>Travel Distance</th>}
               {columns.team && <th>Team</th>}
-              
+
               {/* Actions are always visible */}
               <th>Actions</th>
             </tr>
@@ -262,7 +295,7 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
               data.map((volunteer) => (
                 <tr key={volunteer.id} style={trStyle}>
                   {/* Row Selection Checkbox */}
-                  <td className ="py-2 px-4 text-center">
+                  <td className="py-2 px-4 text-center">
                     <input
                       type='checkbox'
                       checked={selectedRows.includes(volunteer.id)}
@@ -274,11 +307,11 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
                   <td className="py-2 px-4 font-medium text-gray-900">
                     {volunteer.user?.first_name} {volunteer.user?.last_name}
                   </td>
-                  
+
                   {/* Conditionally rendered cells */}
                   {columns.phone && <td className="py-2 px-4">{volunteer.phone_number}</td>}
                   {columns.gender && <td className="py-2 px-4">{volunteer.gender}</td>}
-                  
+
                   {columns.skills && (
                     <td className="py-2 px-4">
                       {volunteer.skills?.map((skill, index) => (
@@ -286,31 +319,31 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
                       ))}
                     </td>
                   )}
-                  
+
                   {columns.schedule && (
                     <td className="py-2 px-4">
                       {volunteer.availability && volunteer.availability.length > 0 ? (
                         <div className="flex flex-col items-center gap-1">
                           {volunteer.availability.map((avail, index) => (
                             <span key={avail.id || index} className="text-xs bg-gray-100 px-2 py-1 rounded w-max">
-                              <span className="font-semibold">{avail.dayofweek}:</span> {avail.start_time.slice(0,5)} - {avail.end_time.slice(0,5)}
+                              <span className="font-semibold">{avail.dayofweek}:</span> {avail.start_time.slice(0, 5)} - {avail.end_time.slice(0, 5)}
                             </span>
                           ))}
                         </div>
-                      ) : ( 
-                        <span className="text-gray-400 italic text-sm">None</span> 
-                      )} 
+                      ) : (
+                        <span className="text-gray-400 italic text-sm">None</span>
+                      )}
                     </td>
                   )}
 
                   {columns.languages && (
                     <td className="py-2 px-4">{volunteer.languages?.map(lang => lang.language_name).join(", ")}</td>
                   )}
-                  
+
                   {columns.sub && (
                     <td className="py-2 px-4">{volunteer.sub_duty_preference ? "Yes" : "No"}</td>
                   )}
-                  
+
                   {columns.preferences && (
                     <td className="py-2 px-4">
                       {volunteer.preferences?.map((pref, index) => (
@@ -318,7 +351,7 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
                       ))}
                     </td>
                   )}
-                  
+
                   {columns.distance && (
                     <td className="py-2 px-4">{volunteer.max_distance_preferred ? `${volunteer.max_distance_preferred} mi` : "N/A"}</td>
                   )}
@@ -329,10 +362,12 @@ export default function VolunteerTable({ data, onDelete, onEdit }: VolunteerTabl
                   {/* Actions (Always Visible) */}
                   <td className="py-2 px-4">
                     <div className="flex items-center justify-center gap-2">
-                      <MessageIcon />
-                      <span className="text-sm font-medium">Message</span>
-                      <button onClick = {() => openBookingModal(volunteer)} className ="flex items-center gap-2 cursor-pointer hover:text-[#9F0059] transition-colors">
-                        <CalendarIcon/>
+                      <button onClick={() => openMessageModal(volunteer)} className="flex items-center gap-2 cursor-pointer hover:text-[#9f0059] transition-colors">
+                        <MessageIcon />
+                        <span className="text-sm font-medium">Message</span>
+                      </button>
+                      <button onClick={() => openBookingModal(volunteer)} className="flex items-center gap-2 cursor-pointer hover:text-[#9F0059] transition-colors">
+                        <CalendarIcon />
                         <span className="text-sm font-medium">Book</span>
                       </button>
 

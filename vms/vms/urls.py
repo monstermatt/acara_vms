@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import SendSMSView
+from .views import SendMessageView
 from . import views
 
 router = routers.DefaultRouter()
@@ -28,6 +28,6 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), 
     path('password-reset-request/', views.password_reset_request, name='password_reset_request'),
     path('confirm-password-reset/', views.confirm_password_reset, name='confirm_password_reset'),
-    path('messages/send/', SendSMSView.as_view(), name='send_sms'),
+    path('api/messages/send/', SendMessageView.as_view(), name='send_message'),
 
 ]
