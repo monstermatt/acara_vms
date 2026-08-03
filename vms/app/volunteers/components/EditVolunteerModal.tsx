@@ -3,35 +3,35 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { UserData } from "@/app/volunteers/types/volunteer";
-import WeeklyScheduleBuilder, { TimeSlot } from "./WeeklyScheduleBuilder"; 
+import WeeklyScheduleBuilder, { TimeSlot } from "./WeeklyScheduleBuilder";
 import { EditIcon, UserIcon } from "@/icons";
 
 interface EditVolunteerModalProps {
   volunteerId: number;
   onClose: () => void;
-  onSuccess: (updatedUser: UserData) => void; 
+  onSuccess: (updatedUser: UserData) => void;
 }
 
 export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: EditVolunteerModalProps) {
   const { data: session } = useSession();
-  
+
   // Loading states
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Form States
   const [availabilities, setAvailabilities] = useState<TimeSlot[]>([]);
   const [initialAvailabilityIds, setInitialAvailabilityIds] = useState<number[]>([]); // Track old ones to delete
-  
+
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [isAddingSkill, setIsAddingSkill] = useState(false);
   const [newSkillInput, setNewSkillInput] = useState("");
-  
+
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [isAddingLanguage, setIsAddingLanguage] = useState(false);
   const [newLanguageInput, setNewLanguageInput] = useState("");
-  
+
   const [isPreferenceDropdownOpen, setIsPreferenceDropdownOpen] = useState(false);
   const [selectedPreferenceIds, setSelectedPreferenceIds] = useState<number[]>([]);
   const PREFERENCE_OPTIONS = [
@@ -79,7 +79,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
 
         // Set form states
         setBaseUserId(volData.user.id);
-        
+
         setFormData({
           email: volData.user.email || "",
           first_name: volData.user.first_name || "",
@@ -97,7 +97,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
         setSelectedSkills(volData.skills?.map((s: any) => s.skill_name) || []);
         setSelectedLanguages(volData.languages?.map((l: any) => l.language_name) || []);
         setSelectedPreferenceIds(volData.preferences?.map((p: any) => p.id) || []);
-        
+
         // Map availabilities
         setInitialAvailabilityIds(myAvails.map((a: any) => a.id));
         setAvailabilities(myAvails.map((a: any) => ({
@@ -157,10 +157,10 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
-    
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -182,7 +182,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
       const userPayload = {
         first_name: formData.first_name,
         last_name: formData.last_name,
-        email: formData.email, 
+        email: formData.email,
       };
 
       await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${baseUserId}/`, {
@@ -201,7 +201,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
             body: JSON.stringify({ skill_name: skillName }),
           });
           const data = await res.json();
-          return data.id || data.skill_id; 
+          return data.id || data.skill_id;
         });
         currentSkillIds = (await Promise.all(skillPromises)).filter(id => id != null);
       }
@@ -231,9 +231,9 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
         max_distance_preferred: Number(formData.max_distance_preferred),
         team: formData.team,
         sub_duty_preference: formData.sub_duty_preference,
-        skills: currentSkillIds, 
-        languages: currentLanguageIds, 
-        preferences: selectedPreferenceIds, 
+        skills: currentSkillIds,
+        languages: currentLanguageIds,
+        preferences: selectedPreferenceIds,
       };
 
       const volResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/${volunteerId}/`, {
@@ -268,7 +268,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
               end_time: slot.end_time,
             }),
           });
-          if(res.ok) newAvails.push(await res.json());
+          if (res.ok) newAvails.push(await res.json());
         }));
       }
 
@@ -277,7 +277,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
         id: volunteerId,
         user: {
           id: baseUserId,
-          username: formData.email, 
+          username: formData.email,
           email: formData.email,
           first_name: formData.first_name,
           last_name: formData.last_name,
@@ -299,7 +299,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
       };
 
       onSuccess(completeUserData);
-      onClose(); 
+      onClose();
 
     } catch (err: any) {
       console.error("Failed to update volunteer:", err);
@@ -321,13 +321,13 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
   }
 
   return (
-    <div className='fixed inset-0 z-50 overflow-y-auto bg-background-alt p-8'>
+    <div className='fixed inset-0 z-50 overflow-y-auto bg-background-alt p-4 md:p-8'>
       <div className='main-container'>
-        
+
         {error && <div className="mb-8 p-4 bg-red-100 text-red-700 text-sm font-semibold rounded-xl">{error}</div>}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
-          
+
           <div className="sticky top-0 z-20 bg-background-alt py-4 -mt-4 mb-6 flex justify-between items-start">
             <div>
               <h1 className="page-header">Edit Volunteer</h1>
@@ -389,10 +389,10 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
                 <div className="flex flex-col gap-1">
                   <label className="form-label" htmlFor="team">Team</label>
                   <select className='input-style' name="team" value={formData.team} onChange={handleChange}>
-                    <option value ="">Select Team</option>
-                    <option value = "A">Team A</option>
-                    <option value = "B">Team B</option>
-                    <option value = "C">Team C</option>
+                    <option value="">Select Team</option>
+                    <option value="A">Team A</option>
+                    <option value="B">Team B</option>
+                    <option value="C">Team C</option>
                   </select>
                 </div>
               </div>
@@ -402,92 +402,92 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
           {/* ADDITIONAL INFORMATION */}
           <section className="info-card">
             <h2 className="section-header">Additional Information</h2>
-            
-            <div className="bg-[#f4f4f4] rounded-2xl p-6 mb-8 col-span-full">
-               {/*WeeklyScheduleBuilder */}
+
+            <div className="bg-[#f4f4f4] rounded-2xl sm:rounded-2xl p-3 sm:p-6 mb-8 col-span-full">
+              {/*WeeklyScheduleBuilder */}
               <WeeklyScheduleBuilder
-              initialData ={availabilities}
-              onScheduleChange={setAvailabilities} />
+                initialData={availabilities}
+                onScheduleChange={setAvailabilities} />
             </div>
 
             <div className="grid grid-cols-1 gap-6 pt-6 border-t border-gray-100">
-                {/* SKILLS */}
-                <div className="mt-4 mb-2 col-span-full">
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">Special Skills</h3>
-                    <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">              
-                      {selectedSkills.map((skill, index) => (
-                          <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
-                          {skill}
-                          <button type="button" onClick={() => removeSkill(skill)} className="text-gray-400 hover:text-red-500 font-bold">×</button>
-                          </div>
-                      ))}
-                      {!isAddingSkill ? (
-                          <button type="button" onClick={() => setIsAddingSkill(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
-                          <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Skill
-                          </button>
-                      ) : (
-                          <input type="text" autoFocus placeholder="Type and press Enter..." value={newSkillInput} onChange={(e) => setNewSkillInput(e.target.value)} onKeyDown={handleAddSkill} onBlur={() => setIsAddingSkill(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
-                      )}
+              {/* SKILLS */}
+              <div className="mt-4 mb-2 col-span-full">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Special Skills</h3>
+                <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">
+                  {selectedSkills.map((skill, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
+                      {skill}
+                      <button type="button" onClick={() => removeSkill(skill)} className="text-gray-400 hover:text-red-500 font-bold">×</button>
                     </div>
-                </div>
-
-                {/* LANGUAGES */}
-                <div className="mt-4 mb-2 col-span-full">
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">Languages</h3>
-                    <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">              
-                      {selectedLanguages.map((language, index) => (
-                          <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
-                          {language}
-                          <button type="button" onClick={() => removeLanguage(language)} className="text-gray-400 hover:text-red-500 font-bold">×</button>
-                          </div>
-                      ))}
-                      {!isAddingLanguage ? (
-                          <button type="button" onClick={() => setIsAddingLanguage(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
-                          <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Language
-                          </button>
-                      ) : (
-                          <input type="text" autoFocus placeholder="Type and press Enter..." value={newLanguageInput} onChange={(e) => setNewLanguageInput(e.target.value)} onKeyDown={handleAddLanguage} onBlur={() => setIsAddingLanguage(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
-                      )}
-                    </div>
-                </div>
-
-                {/* PREFERENCES */}
-                <div className="col-span-full relative">
-                    <h3 className="font-semibold mb-1">Assignment Preferences</h3>
-                    <button type="button" onClick={() => setIsPreferenceDropdownOpen(!isPreferenceDropdownOpen)} className="input-style w-full flex justify-between items-center text-left bg-white">
-                      <span className={selectedPreferenceIds.length === 0 ? "text-gray-400" : "text-black"}>
-                          {selectedPreferenceIds.length > 0 ? `${selectedPreferenceIds.length} preference(s) selected` : "Select Preferences..."}
-                      </span>
-                      <span className="text-gray-400 text-xs">▼</span>
+                  ))}
+                  {!isAddingSkill ? (
+                    <button type="button" onClick={() => setIsAddingSkill(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
+                      <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Skill
                     </button>
-
-                    {isPreferenceDropdownOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-2 flex flex-col gap-1">
-                        {PREFERENCE_OPTIONS.map((pref) => (
-                        <label key={pref.id} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded transition-colors">
-                            <input type="checkbox" checked={selectedPreferenceIds.includes(pref.id)} onChange={() => handlePreferenceToggle(pref.id)} className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" />
-                            <span className="text-sm text-gray-700 font-medium">{pref.label}</span>
-                        </label>
-                        ))}
-                    </div>
-                    )}
+                  ) : (
+                    <input type="text" autoFocus placeholder="Type and press Enter..." value={newSkillInput} onChange={(e) => setNewSkillInput(e.target.value)} onKeyDown={handleAddSkill} onBlur={() => setIsAddingSkill(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                  )}
                 </div>
+              </div>
 
-                {/* SUB DUTY & ADDRESS */}
-                <div className="grid grid-cols-2 gap-4 col-span-full">
-                    <div className="flex flex-col gap-1">
-                        <label className="form-label" htmlFor="address">Address</label>
-                        <input className="input-style" type="text" name="address" value={formData.address} onChange={handleChange} />
+              {/* LANGUAGES */}
+              <div className="mt-4 mb-2 col-span-full">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Languages</h3>
+                <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">
+                  {selectedLanguages.map((language, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
+                      {language}
+                      <button type="button" onClick={() => removeLanguage(language)} className="text-gray-400 hover:text-red-500 font-bold">×</button>
                     </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="form-label" htmlFor="max_distance_preferred">Max Travel Distance (miles)</label>
-                        <input className="input-style" type="number" name="max_distance_preferred" value={formData.max_distance_preferred} onChange={handleChange} />
-                    </div>
-                    <div className="col-span-full pt-2 flex items-center gap-2">
-                        <input type="checkbox" name="sub_duty_preference" id="sub_duty_preference" checked={formData.sub_duty_preference} onChange={handleChange} className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" />
-                        <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>
-                    </div>
+                  ))}
+                  {!isAddingLanguage ? (
+                    <button type="button" onClick={() => setIsAddingLanguage(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
+                      <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Language
+                    </button>
+                  ) : (
+                    <input type="text" autoFocus placeholder="Type and press Enter..." value={newLanguageInput} onChange={(e) => setNewLanguageInput(e.target.value)} onKeyDown={handleAddLanguage} onBlur={() => setIsAddingLanguage(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                  )}
                 </div>
+              </div>
+
+              {/* PREFERENCES */}
+              <div className="col-span-full relative">
+                <h3 className="font-semibold mb-1">Assignment Preferences</h3>
+                <button type="button" onClick={() => setIsPreferenceDropdownOpen(!isPreferenceDropdownOpen)} className="input-style w-full flex justify-between items-center text-left bg-white">
+                  <span className={selectedPreferenceIds.length === 0 ? "text-gray-400" : "text-black"}>
+                    {selectedPreferenceIds.length > 0 ? `${selectedPreferenceIds.length} preference(s) selected` : "Select Preferences..."}
+                  </span>
+                  <span className="text-gray-400 text-xs">▼</span>
+                </button>
+
+                {isPreferenceDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-2 flex flex-col gap-1">
+                    {PREFERENCE_OPTIONS.map((pref) => (
+                      <label key={pref.id} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded transition-colors">
+                        <input type="checkbox" checked={selectedPreferenceIds.includes(pref.id)} onChange={() => handlePreferenceToggle(pref.id)} className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" />
+                        <span className="text-sm text-gray-700 font-medium">{pref.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SUB DUTY & ADDRESS */}
+              <div className="grid grid-cols-2 gap-4 col-span-full">
+                <div className="flex flex-col gap-1">
+                  <label className="form-label" htmlFor="address">Address</label>
+                  <input className="input-style" type="text" name="address" value={formData.address} onChange={handleChange} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label" htmlFor="max_distance_preferred">Max Travel Distance (miles)</label>
+                  <input className="input-style" type="number" name="max_distance_preferred" value={formData.max_distance_preferred} onChange={handleChange} />
+                </div>
+                <div className="col-span-full pt-2 flex items-center gap-2">
+                  <input type="checkbox" name="sub_duty_preference" id="sub_duty_preference" checked={formData.sub_duty_preference} onChange={handleChange} className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" />
+                  <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>
+                </div>
+              </div>
             </div>
           </section>
         </form>

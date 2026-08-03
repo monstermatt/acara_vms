@@ -1,7 +1,7 @@
-import {withAuth} from "next-auth/middleware";
-import {NextResponse} from "next/server";
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-export default withAuth( 
+export default withAuth(
     function middleware(req) {
         console.log(req.nextUrl.pathname);
         console.log(req.nextauth.token);
@@ -9,7 +9,7 @@ export default withAuth(
     },
     {
         callbacks: {
-            authorized: ({req, token}) => {
+            authorized: ({ req, token }) => {
                 if (!token) return false; //automatically reject req w/o token
 
                 const path = req.nextUrl.pathname;
@@ -22,7 +22,7 @@ export default withAuth(
                 if (path.startsWith("/volunteers") || path.startsWith("/dashboard") || path.startsWith("/calendar")) {
                     return userRole === "COORD" || userRole === "ADMIN";
                 }
-                if (path.startsWith("/profile")){
+                if (path.startsWith("/profile")) {
                     return userRole === "VOLUN" || userRole === "COORD" || userRole === "ADMIN";
                 }
 

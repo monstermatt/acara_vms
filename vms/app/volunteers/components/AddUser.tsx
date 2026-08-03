@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { UserData } from "@/app/volunteers/types/volunteer";
-import WeeklyScheduleBuilder, { TimeSlot } from "./WeeklyScheduleBuilder"; 
+import WeeklyScheduleBuilder, { TimeSlot } from "./WeeklyScheduleBuilder";
 import { EditIcon, UserIcon } from "@/icons";
 
 interface CreateUserModalProps {
   onClose: () => void;
-  onSuccess: (newUser: UserData) => void; 
+  onSuccess: (newUser: UserData) => void;
 }
 
 export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserModalProps) {
@@ -27,15 +27,15 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
   const [isPreferenceDropdownOpen, setIsPreferenceDropdownOpen] = useState(false);
   const [selectedPreferenceIds, setSelectedPreferenceIds] = useState<number[]>([]);
   const PREFERENCE_OPTIONS = [
-  { id: 1, label: "Office" },
-  { id: 2, label: "Patient" },
-  { id: 3, label: "Facility" },
-];
+    { id: 1, label: "Office" },
+    { id: 2, label: "Patient" },
+    { id: 3, label: "Facility" },
+  ];
 
   // Toggle function for checkboxes
   const handlePreferenceToggle = (id: number) => {
     setSelectedPreferenceIds((prev) =>
-      prev.includes(id) 
+      prev.includes(id)
         ? prev.filter((prevId) => prevId !== id) // Remove if already checked
         : [...prev, id] // Add if not checked
     );
@@ -84,8 +84,8 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
     team: "",
     assignement_preference: "",
     availability_dayofweek: "",
-    availability_starttime:"",
-    availability_endtime:"",
+    availability_starttime: "",
+    availability_endtime: "",
     sub_duty_preference: false,
     native_language: "",
   });
@@ -114,7 +114,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         email: formData.email,
         first_name: formData.first_name,
         last_name: formData.last_name,
-        role: "VOLUN" 
+        role: "VOLUN"
       };
 
       const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/`, {
@@ -130,34 +130,35 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       }
       const createdUser = await userResponse.json();
 
-      try{
-      const emailResponse = await fetch('/api/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({email: createdUser.email}), // send the email to trigger the password setup flow
+      try {
+        const emailResponse = await fetch('/api/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: createdUser.email }), // send the email to trigger the password setup flow
         });
         if (!emailResponse.ok) {
-          console.warn( "User created but email endpoint returned an error:", await emailResponse.text());
+          console.warn("User created but email endpoint returned an error:", await emailResponse.text());
         } else {
           console.log("Password setup email triggered successfully for", createdUser.email);
         }
-      }catch (emailErr) {
+      } catch (emailErr) {
         console.error("Network error while triggering password setup email:", emailErr);
       }
 
       //Create Skills and get their IDs
       // Django's .set() requires primary keys, so we must turn our string array into an ID array
       let createdSkillIds: number[] = [];
-      
+
       if (selectedSkills.length > 0) {
         const skillPromises = selectedSkills.map(async (skillName) => {
           const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/skills/`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}` },
+              "Authorization": `Bearer ${token}`
+            },
             body: JSON.stringify({ skill_name: skillName }),
           });
           if (res.ok) {
@@ -173,9 +174,9 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       }
 
       //create languages and get their IDs
-      const selectedLangugeIds: number[] = []; 
+      const selectedLangugeIds: number[] = [];
       let createdLanguageIds: number[] = [];
-      
+
       if (selectedLanguages.length > 0) {
         const languagePromises = selectedLanguages.map(async (languageName) => {
           const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/languages/`, {
@@ -197,7 +198,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
 
       // Create the Volunteer profile
       const volunteerPayload = {
-        user_id: createdUser.id || createdUser.pk, 
+        user_id: createdUser.id || createdUser.pk,
         phone_number: formData.phone_number,
         address: formData.address,
         age_group: formData.age_group,
@@ -205,8 +206,8 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
         max_distance_preferred: Number(formData.max_distance_preferred),
         team: formData.team,
         sub_duty_preference: formData.sub_duty_preference,
-        skills: createdSkillIds, 
-        languages: createdLanguageIds, 
+        skills: createdSkillIds,
+        languages: createdLanguageIds,
         preferences: selectedPreferenceIds, // Make sure these IDs exist in Postgres
       };
 
@@ -267,7 +268,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
       };
 
       onSuccess(completeUserData);
-      onClose(); 
+      onClose();
 
     } catch (err: any) {
       console.error("Failed to create volunteer workflow:", err);
@@ -279,15 +280,15 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
 
   return (
     <div className='fixed inset-0 z-50 overflow-y-auto bg-background-alt p-4 md: p-8'>
-      
+
       {/* Main Content Container */}
       <div className='main-container'>
-        
+
         {/* Error message */}
         {error && <div className="mb-8 p-4 bg-red-100 text-red-700 text-sm font-semibold rounded-xl">{error}</div>}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
-          
+
           {/* Header Section with Title & Main Buttons */}
           <div className="sticky top-0 z-20 bg-background-alt py-4 -mt-4 mb-6 flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0">
             <div>
@@ -310,7 +311,7 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
 
             {/* Flex layout for avatar & form grid  */}
             <div className="flex flex-col md:flex-row gap-10 items-start">
-              
+
               {/* Profile Avatar Section */}
               <div className="flex flex-col items-center flex-shrink-0 w-40">
                 <div className="w-40 h-40 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 mb-4 border border-gray-300">
@@ -372,10 +373,10 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
                 <div className="flex flex-col gap-1">
                   <label className="form-label" htmlFor="team">Team</label>
                   <select className='input-style' name="team" value={formData.team} onChange={handleChange}>
-                    <option value ="">Select Team</option>
-                    <option value = "A">Team A</option>
-                    <option value = "B">Team B</option>
-                    <option value = "C">Team C</option>
+                    <option value="">Select Team</option>
+                    <option value="A">Team A</option>
+                    <option value="B">Team B</option>
+                    <option value="C">Team C</option>
                   </select>
                 </div>
               </div>
@@ -388,182 +389,182 @@ export default function CreateVolunteerModal({ onClose, onSuccess }: CreateUserM
             <p className="text-gray-500 mb-10">
               Please provide any additional information that may help us in assigning you to suitable volunteer opportunities, such as your availability, skills, languages spoken, and any preferences you may have for the types of assignments you're interested in.
             </p>
-            
+
             {/* Availabilities Grid Section  */}
             <div className="bg-[#f4f4f4] rounded-2xl p-6 mb-8 col-span-full">
               <WeeklyScheduleBuilder
-              initialData = {availabilities}
-              onScheduleChange={setAvailabilities} />
+                initialData={availabilities}
+                onScheduleChange={setAvailabilities} />
             </div>
             <div className="grid grid-cols-1 gap-6 pt-6 border-t border-gray-100">
-                {/* Skills */}
-                <div className="mt-4 mb-2 col-span-full">
-                    {/*  Skills Grid  */}
-                    <div className="mt-4 mb-2">
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">Special Skills</h3>
-                        <p className="text-sm text-gray-400 mb-3">
-                        Remember that skills can include anything you have experience with that might be relevant to a patient, facility, or the office.
-                        </p>
-                        
-                        <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">              
-                        {/* Render the selected skills as chips */}
-                        {selectedSkills.map((skill, index) => (
-                            <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
-                            {skill}
-                            <button 
-                                type="button" 
-                                onClick={() => removeSkill(skill)} 
-                                className="text-gray-400 hover:text-red-500 font-bold"
-                            >
-                                ×
-                            </button>
-                            </div>
-                        ))}
+              {/* Skills */}
+              <div className="mt-4 mb-2 col-span-full">
+                {/*  Skills Grid  */}
+                <div className="mt-4 mb-2">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">Special Skills</h3>
+                  <p className="text-sm text-gray-400 mb-3">
+                    Remember that skills can include anything you have experience with that might be relevant to a patient, facility, or the office.
+                  </p>
 
-                        {/* The + Add New Skill Button / Input */}
-                        {!isAddingSkill ? (
-                            <button
-                            type="button"
-                            onClick={() => setIsAddingSkill(true)}
-                            className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit"
-                            >
-                            <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Skill
-                            </button>
-                        ) : (
-                            <div className="flex items-center gap-2 h-fit">
-                            <input
-                                type="text"
-                                autoFocus
-                                placeholder="Type and press Enter..."
-                                value={newSkillInput}
-                                onChange={(e) => setNewSkillInput(e.target.value)}
-                                onKeyDown={handleAddSkill}
-                                onBlur={() => setIsAddingSkill(false)} // Hides input if they click away
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary"
-                            />
-                            </div>
-                        )}
-                        </div>
-                    </div>
-                    {/*  END SPECIAL SKILLS SECTION  */}
-                </div>
-                {/* Languages */}
-                <div className="mt-4 mb-2 col-span-full">
-                    
-                    {/*  LANGUAGES SECTION  */}
-                    <div className="mt-4 mb-2">
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">Languages</h3>
-                        <p className="text-sm text-gray-400 mb-3">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        </p>
-                        
-                        <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">              
-                        {/* Render the selected languages as chips */}
-                        {selectedLanguages.map((language, index) => (
-                            <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
-                            {language}
-                            <button 
-                                type="button" 
-                                onClick={() => removeLanguage(language)} 
-                                className="text-gray-400 hover:text-red-500 font-bold"
-                            >
-                                ×
-                            </button>
-                            </div>
-                        ))}
-
-                        {/* The + Add New Language Button / Input */}
-                        {!isAddingLanguage ? (
-                            <button
-                            type="button"
-                            onClick={() => setIsAddingLanguage(true)}
-                            className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit"
-                            >
-                            <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Language
-                            </button>
-                        ) : (
-                            <div className="flex items-center gap-2 h-fit">
-                            <input
-                                type="text"
-                                autoFocus
-                                placeholder="Type and press Enter..."
-                                value={newLanguageInput}
-                                onChange={(e) => setNewLanguageInput(e.target.value)}
-                                onKeyDown={handleAddLanguage}
-                                onBlur={() => setIsAddingLanguage(false)} // Hides input if they click away
-                                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary"
-                            />
-                            </div>
-                        )}
-                        </div>
-                    </div>
-                    {/*  END LANGUAGES SECTION  */}
-                </div>
-                {/* Preferences */}
-                <div className="col-span-full relative">
-                    <h3 className="font-semibold text-gray-900 mb-1">Assignment Preferences</h3>
-                    {/* PREFERENCES GRID */}
-                    <div className="mt-2 relative">
-                        <h3 className="font-semibold mb-1">Assignment Preferences</h3>
-                        
-                        {/* The Dropdown Button */}
+                  <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">
+                    {/* Render the selected skills as chips */}
+                    {selectedSkills.map((skill, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
+                        {skill}
                         <button
-                        type="button"
-                        onClick={() => setIsPreferenceDropdownOpen(!isPreferenceDropdownOpen)}
-                        className="input-style w-full flex justify-between items-center text-left bg-white"
+                          type="button"
+                          onClick={() => removeSkill(skill)}
+                          className="text-gray-400 hover:text-red-500 font-bold"
                         >
-                        <span className={selectedPreferenceIds.length === 0 ? "text-gray-400" : "text-black"}>
-                            {selectedPreferenceIds.length > 0
-                            ? `${selectedPreferenceIds.length} preference(s) selected`
-                            : "Select Preferences..."}
-                        </span>
-                        <span className="text-gray-400 text-xs">▼</span>
+                          ×
                         </button>
+                      </div>
+                    ))}
 
-                        {/* The Checkbox Menu */}
-                        {isPreferenceDropdownOpen && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-2 flex flex-col gap-1">
-                            {PREFERENCE_OPTIONS.map((pref) => (
-                            <label 
-                                key={pref.id} 
-                                className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded transition-colors"
-                            >
-                                <input
-                                type="checkbox"
-                                checked={selectedPreferenceIds.includes(pref.id)}
-                                onChange={() => handlePreferenceToggle(pref.id)}
-                                className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300"
-                                />
-                                <span className="text-sm text-gray-700 font-medium">{pref.label}</span>
-                            </label>
-                            ))}
-                        </div>
-                        )}
-                    </div>
-                    {/* END PREFERENCES SECTION */}
-                </div>
-                {/* Sub duty and Address */}
-                <div className="grid grid-cols-2 gap-4 col-span-full">
-                    <div className="flex flex-col gap-1">
-                        <label className="form-label" htmlFor="address">Address</label>
-                        <input required className="input-style" type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="form-label" htmlFor="max_distance_preferred">Max Travel Distance (miles)</label>
-                        <input className="input-style" type="number" name="max_distance_preferred" placeholder="Max Travel Distance (miles)" value={formData.max_distance_preferred} onChange={handleChange} />
-                    </div>
-                  
-                    <div className="col-span-full pt-2 flex items-center gap-2">
-                        <input 
-                            type="checkbox" 
-                            name="sub_duty_preference"
-                            checked={formData.sub_duty_preference }
-                            onChange={(e) => setFormData(prev => ({ ...prev, sub_duty_preference: e.target.checked }))}
-                            className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300" 
+                    {/* The + Add New Skill Button / Input */}
+                    {!isAddingSkill ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingSkill(true)}
+                        className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit"
+                      >
+                        <span className="text-gray-900 text-lg leading-none font-light">+</span> Add New Skill
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 h-fit">
+                        <input
+                          type="text"
+                          autoFocus
+                          placeholder="Type and press Enter..."
+                          value={newSkillInput}
+                          onChange={(e) => setNewSkillInput(e.target.value)}
+                          onKeyDown={handleAddSkill}
+                          onBlur={() => setIsAddingSkill(false)} // Hides input if they click away
+                          className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary"
                         />
-                        <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>                    
-                    </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {/*  END SPECIAL SKILLS SECTION  */}
+              </div>
+              {/* Languages */}
+              <div className="mt-4 mb-2 col-span-full">
+
+                {/*  LANGUAGES SECTION  */}
+                <div className="mt-4 mb-2">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">Languages</h3>
+                  <p className="text-sm text-gray-400 mb-3">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  </p>
+
+                  <div className="bg-[#f4f4f4] rounded-xl p-6 min-h-[120px] flex flex-wrap content-start gap-3">
+                    {/* Render the selected languages as chips */}
+                    {selectedLanguages.map((language, index) => (
+                      <div key={index} className="bg-white border border-gray-200 rounded-md px-3 py-1.5 flex items-center gap-2 text-sm text-gray-700 shadow-sm h-fit">
+                        {language}
+                        <button
+                          type="button"
+                          onClick={() => removeLanguage(language)}
+                          className="text-gray-400 hover:text-red-500 font-bold"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* The + Add New Language Button / Input */}
+                    {!isAddingLanguage ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingLanguage(true)}
+                        className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit"
+                      >
+                        <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Language
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 h-fit">
+                        <input
+                          type="text"
+                          autoFocus
+                          placeholder="Type and press Enter..."
+                          value={newLanguageInput}
+                          onChange={(e) => setNewLanguageInput(e.target.value)}
+                          onKeyDown={handleAddLanguage}
+                          onBlur={() => setIsAddingLanguage(false)} // Hides input if they click away
+                          className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/*  END LANGUAGES SECTION  */}
+              </div>
+              {/* Preferences */}
+              <div className="col-span-full relative">
+                <h3 className="font-semibold text-gray-900 mb-1">Assignment Preferences</h3>
+                {/* PREFERENCES GRID */}
+                <div className="mt-2 relative">
+                  <h3 className="font-semibold mb-1">Assignment Preferences</h3>
+
+                  {/* The Dropdown Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsPreferenceDropdownOpen(!isPreferenceDropdownOpen)}
+                    className="input-style w-full flex justify-between items-center text-left bg-white"
+                  >
+                    <span className={selectedPreferenceIds.length === 0 ? "text-gray-400" : "text-black"}>
+                      {selectedPreferenceIds.length > 0
+                        ? `${selectedPreferenceIds.length} preference(s) selected`
+                        : "Select Preferences..."}
+                    </span>
+                    <span className="text-gray-400 text-xs">▼</span>
+                  </button>
+
+                  {/* The Checkbox Menu */}
+                  {isPreferenceDropdownOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-2 flex flex-col gap-1">
+                      {PREFERENCE_OPTIONS.map((pref) => (
+                        <label
+                          key={pref.id}
+                          className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedPreferenceIds.includes(pref.id)}
+                            onChange={() => handlePreferenceToggle(pref.id)}
+                            className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300"
+                          />
+                          <span className="text-sm text-gray-700 font-medium">{pref.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* END PREFERENCES SECTION */}
+              </div>
+              {/* Sub duty and Address */}
+              <div className="grid grid-cols-2 gap-4 col-span-full">
+                <div className="flex flex-col gap-1">
+                  <label className="form-label" htmlFor="address">Address</label>
+                  <input required className="input-style" type="text" name="address" placeholder="Address" value={formData.address} onChange={handleChange} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label" htmlFor="max_distance_preferred">Max Travel Distance (miles)</label>
+                  <input className="input-style" type="number" name="max_distance_preferred" placeholder="Max Travel Distance (miles)" value={formData.max_distance_preferred} onChange={handleChange} />
+                </div>
+
+                <div className="col-span-full pt-2 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="sub_duty_preference"
+                    checked={formData.sub_duty_preference}
+                    onChange={(e) => setFormData(prev => ({ ...prev, sub_duty_preference: e.target.checked }))}
+                    className="w-4 h-4 text-primary focus:ring-primary rounded border-gray-300"
+                  />
+                  <label className="text-sm font-medium text-gray-700" htmlFor="sub_duty_preference">Available for Sub Duty?</label>
+                </div>
+              </div>
             </div>
           </section>
 
