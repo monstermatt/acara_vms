@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { Dispatch, SetStateAction } from 'react';
 
 /* importing SVG icons*/
@@ -52,8 +52,8 @@ const SidebarElements = ({ label, icon, active, onClick, collapsed }: SidebarEle
     <button
       onClick={onClick}
       className={`sidebar-elements ${active
-          ? 'sidebar-element-active'
-          : 'sidebar-element-hover'
+        ? 'sidebar-element-active'
+        : 'sidebar-element-hover'
         } ${collapsed ? 'border border-primary rounded-2xl py-3' : 'border-transparent'}`
       }
     >
@@ -68,8 +68,8 @@ const LogoutElement = ({ label, icon, active, onClick, collapsed }: SidebarEleme
     <button
       onClick={onClick}
       className={`sidebar-logout ${active
-          ? 'sidebar-element-active'
-          : 'sidebar-element-hover'
+        ? 'sidebar-element-active'
+        : 'sidebar-element-hover'
         } ${collapsed ? 'rounded-2xl' : 'rounded-4xl'}`
       }
     >
@@ -105,6 +105,8 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role;
 
   const sidebarSections: SidebarSections[] = [
     {
@@ -137,6 +139,13 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
     },
   ];
 
+  const visibleSections = sidebarSections.filter((section) => {
+    if (role === 'ADMIN') return true;
+    if (role === 'COORD') return section.title !== 'Settings';
+    if (role === 'VOLUN') return false;
+    return false; // Fallback for undefined/other roles
+  });
+
   return (
     <aside
       className={`sidebar-background ${collapsed ? 'w-20' : 'w-64'
@@ -167,7 +176,7 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
 
       {/* Mid-sidebar - sections and page links */}
       <nav className="flex-1 px-3 py-6 space-y-8 overflow-y-auto">
-        {sidebarSections.map((section, index) => (
+        {visibleSections.map((section, index) => (
           <div key={section.title}>
             <SectionHeader title={section.title} collapsed={collapsed} isFirst={index === 0} />
             <div className="space-y-1">
@@ -192,7 +201,7 @@ export default function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           label="Logout"
           icon={<LogoutIcon width={20} height={20} />}
           active={pathname === '/login'}
-          onClick={() => signOut() } //automatically redirects to login page via api/auth/[...nextauth]/routes.ts pages
+          onClick={() => signOut()} //automatically redirects to login page via api/auth/[...nextauth]/routes.ts pages
           collapsed={collapsed}
         />
       </div>
