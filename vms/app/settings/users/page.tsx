@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import { EditIcon } from '@/icons';
+import Papa from 'papaparse';
 
 // HOW a user looks like
 interface User {
@@ -177,7 +178,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
 
 // THIS IS THE MAIN page, decides which view to show
 export default function UsersPage() {
-  const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
+  const [view, setView] = useState<'list' | 'create' | 'edit' | 'bulk-create'>('list');
   const [users, setUsers] = useState<User[]>([]); // this will hold the users data, initially empty until we fetch from the API;
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -319,6 +320,7 @@ export default function UsersPage() {
           onEdit={handleEditClick}
           // Replace the inline function with your new async function
           onDeleteMultiple={handleMultipleUsersDeleted}
+          onBulkImport={() => setView('bulk-create')}
         />
       )}
       {view === 'create' && (
@@ -332,13 +334,19 @@ export default function UsersPage() {
           onDelete={handleUserDeleted}
         />
       )}
+      {view === 'bulk-create' && (
+        <BulkCreateUserView
+          onBack={() => setView('list')}
+          onSuccess={() => window.location.reload()}
+        />
+      )}
     </div>
   );
 }
 
 // View 1 - the users table
 function UsersListView({
-  users, totalCount, searchQuery, onSearchChange, onAddNew, onEdit, onDeleteMultiple,
+  users, totalCount, searchQuery, onSearchChange, onAddNew, onEdit, onDeleteMultiple, onBulkImport
 }: {
   users: User[];
   totalCount: number;
@@ -347,6 +355,7 @@ function UsersListView({
   onAddNew: () => void;
   onEdit: (user: User) => void;
   onDeleteMultiple: (ids: number[]) => void;
+  onBulkImport: () => void;
 }) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
@@ -388,12 +397,20 @@ function UsersListView({
           <h1 className="page-header">Users</h1>
           <p className="text-sm text-gray-500 mt-1">There are {totalCount} users in the system</p>
         </div>
-        <button
-          onClick={onAddNew}
-          className="btn-primary flex items-center gap-2"
-        >
-          + Add New
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={onBulkImport}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            Bulk Import (CSV)
+          </button>
+          <button
+            onClick={onAddNew}
+            className="btn-primary flex items-center gap-2"
+          >
+            + Add New
+          </button>
+        </div>
       </div>
 
 
@@ -852,6 +869,212 @@ function EditUserView({
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// VIEW 4 - bulk importing users
+function BulkCreateUserView({ onBack, onSuccess }: { onBack: () => void; onSuccess: () => void }) {
+  const [parsedData, setParsedData] = useState<any[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const { data: session } = useSession();
+  
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as any[];
+        const validationErrors: string[] = [];
+        const validData = data.map((row, index) => {
+          const first_name = row.first_name || '';
+          const last_name = row.last_name || '';
+          const email = row.email || '';
+          const role = (row.role || '').toUpperCase();
+          
+          if (!first_name || !last_name || !email || !role) {
+            validationErrors.push(`Row ${index + 1}: Missing required fields.`);
+          }
+          if (!['VOLUN', 'COORD', 'ADMIN'].includes(role)) {
+            validationErrors.push(`Row ${index + 1}: Invalid role "${role}". Must be VOLUN, COORD, or ADMIN.`);
+          }
+          
+          return { first_name, last_name, email, role };
+        });
+
+        if (validationErrors.length > 0) {
+          setErrors(validationErrors);
+          setParsedData([]);
+        } else {
+          setErrors([]);
+          setParsedData(validData);
+        }
+      },
+      error: (error: any) => {
+        setErrors([error.message]);
+      }
+    });
+  };
+
+  const handleImport = async () => {
+    if (parsedData.length === 0) return;
+    setIsImporting(true);
+    setProgress(0);
+    const token = (session as any)?.accessToken;
+    const importErrors: string[] = [];
+
+    for (let i = 0; i < parsedData.length; i++) {
+      const user = parsedData[i];
+      try {
+        const userPayload = {
+          username: user.email,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          role: user.role
+        };
+
+        const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(userPayload),
+        });
+
+        if (!userResponse.ok) {
+          const errorData = await userResponse.json().catch(() => ({}));
+          throw new Error(errorData.detail || errorData.email?.[0] || errorData.username?.[0] || `Status ${userResponse.status}`);
+        }
+        const createdUser = await userResponse.json();
+
+        if (user.role === 'VOLUN') {
+          const volunteerPayload = {
+            user_id: createdUser.id,
+            phone_number: "555-555-5555",
+            address: "TBD",
+          };
+          const volResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/volunteers/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(volunteerPayload),
+          });
+          if (!volResponse.ok) {
+            importErrors.push(`Row ${i + 1} (${user.email}): Failed to create volunteer profile.`);
+          }
+        }
+
+        try {
+          await fetch('/api/forgot-password/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: createdUser.email }),
+          });
+        } catch (e) {
+          console.error("Failed to send setup email for", user.email);
+        }
+
+      } catch (err: any) {
+        importErrors.push(`Row ${i + 1} (${user.email}): ${err.message}`);
+      }
+
+      setProgress(i + 1);
+      // Wait for 2 seconds before the next request
+      if (i < parsedData.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    setIsImporting(false);
+    if (importErrors.length > 0) {
+      alert(`Import completed with ${importErrors.length} errors:\\n` + importErrors.join('\\n'));
+    } else {
+      alert("All users imported successfully!");
+    }
+    onSuccess();
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-4 mb-2">
+        <BackButton onClick={onBack} />
+        <div>
+          <h1 className="page-header mb-0">Bulk Create Users</h1>
+          <p className="text-gray-500 text-sm">Upload a CSV file to create multiple users at once.</p>
+        </div>
+      </div>
+
+      <div className="mt-8 max-w-4xl">
+        <div className="mb-6 p-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center justify-center">
+          <p className="text-gray-600 mb-4 text-center text-sm">
+            Please upload a CSV file with the following headers:<br/>
+            <strong>first_name, last_name, email, role</strong><br/>
+            <em>(role must be VOLUN, COORD, or ADMIN)</em>
+          </p>
+          <input type="file" accept=".csv" onChange={handleFileUpload} disabled={isImporting} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90" />
+        </div>
+
+        {errors.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 max-h-40 overflow-y-auto">
+            <h3 className="font-semibold mb-2 text-sm">Validation Errors:</h3>
+            <ul className="list-disc pl-5 text-sm">
+              {errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {parsedData.length > 0 && !errors.length && (
+          <div className="mb-6">
+            <h3 className="font-semibold text-gray-800 mb-3">Preview ({parsedData.length} users)</h3>
+            <div className="overflow-hidden rounded-xl border border-gray-200 max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr className="table-header-row">
+                    <th className="table-header-cell">Name</th>
+                    <th className="table-header-cell">Surname</th>
+                    <th className="table-header-cell">Email</th>
+                    <th className="table-header-cell">Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {parsedData.map((u, i) => (
+                    <tr key={i} className="table-row">
+                      <td className="table-cell">{u.first_name}</td>
+                      <td className="table-cell">{u.last_name}</td>
+                      <td className="table-cell">{u.email}</td>
+                      <td className="table-cell">{u.role}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="mt-6 flex justify-end items-center gap-4">
+              {isImporting && (
+                <span className="text-sm font-semibold text-gray-600">
+                  Importing {progress} / {parsedData.length}...
+                </span>
+              )}
+              <button
+                onClick={handleImport}
+                disabled={isImporting}
+                className={`btn-primary px-10 ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {isImporting ? 'Importing...' : 'Start Import'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
