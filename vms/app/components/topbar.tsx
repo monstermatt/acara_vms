@@ -1,3 +1,5 @@
+"use client";
+
 import { BellIcon } from "@/icons"
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +13,7 @@ export default function Topbar() {
     const role = (session?.user as any)?.role; // Retrieve the user's role
     
     const [baseUser, setBaseUser] = useState<any>(null); // State for all users  
+    const [imgError, setImgError] = useState(false);
 
     useEffect(() => {
         async function fetchProfileData() {
@@ -23,6 +26,7 @@ export default function Topbar() {
                 headers: {
                     Authorization: `Bearer ${token}`
                 },
+                cache: 'no-store', // Prevent caching of the profile data
               }
             );
     
@@ -38,7 +42,7 @@ export default function Topbar() {
 
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-    const profilePicSrc = baseUser?.profile_picture
+    const profilePicSrc = (baseUser?.profile_picture && !imgError)
         ? (baseUser.profile_picture.startsWith('http') ? baseUser.profile_picture : `${baseUrl}${baseUser.profile_picture}`)
         : "/profile-pic.png";
 
@@ -60,6 +64,7 @@ export default function Topbar() {
                             fill
                             sizes="52px"
                             className="object-cover rounded-full"
+                            onError={() => setImgError(true)}
                         /></Link>
                     </div>
                     <div className = "">
