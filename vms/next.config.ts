@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: '127.0.0.1',
       },
+      {
+        protocol: 'https',
+        hostname: 'acaravolunteers.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'acaravolunteers.com',
+      },
     ],
   },
   turbopack: {
