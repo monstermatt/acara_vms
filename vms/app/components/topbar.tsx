@@ -42,7 +42,7 @@ export default function Topbar() {
 
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-    const profilePicSrc = (baseUser?.profile_picture && !imgError)
+    const profilePicSrc = baseUser?.profile_picture
         ? (baseUser.profile_picture.startsWith('http') ? baseUser.profile_picture : `${baseUrl}${baseUser.profile_picture}`)
         : "/profile-pic.png";
 
@@ -63,7 +63,7 @@ export default function Topbar() {
                                 src={profilePicSrc}
                                 alt="Profile Picture"
                                 className="object-cover rounded-full w-[52px] h-[52px]"
-                                onError={() => setImgError(true)}
+                                onError={(e) => console.log("Image failed to load:", e.currentTarget.src)}
                             />
                         </Link>
                     </div>
