@@ -7,7 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 'role'] 
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 'role', 'profile_picture'] 
 
 # NOTE: Serializers of many to many fields need to be created before referencing in Volunteer and other calling tables
 

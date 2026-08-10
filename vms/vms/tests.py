@@ -5,6 +5,9 @@ from unittest.mock import patch
 from .models import User, Volunteer, VolunteerAvailability, VolunteerAbsence, VolunteerSchedule, Visit, Recognition, Skill, Language, VolunteeringPreference, Notification
 from .utils import send_email
 from datetime import date, time
+import io
+from PIL import Image
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 # Tests for the Volunteer APIs
 # Tests emulate and bypass frontend code
@@ -492,3 +495,70 @@ class NotificationTests(APITestCase):
         )
         self.assertIsNotNone(notif.date_sent)
 
+#create test user and upload dummy profile picture
+class ProfilePictureTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='pic_test_user',
+            email='pictest@vmstest.com',
+            role=User.Role.VOLUNTEER,
+            is_active=True
+        )
+        self.client.force_authenticate(user=self.user)
+    def generate_dummy_image(self):
+        """Generates a simple 100x100 red JPEG image for testing."""
+        file_obj = io.BytesIO()
+        image = Image.new('RGB', (100, 100), color=(255, 0, 0))
+        image.save(file_obj, 'JPEG')
+        file_obj.seek(0)
+        return SimpleUploadedFile(
+            name='test_profile_pic.jpg',
+            content=file_obj.read(),
+            content_type='image/jpeg'
+        )
+    def test_upload_profile_picture(self):
+        """Test uploading a profile picture via PATCH request."""
+        image = self.generate_dummy_image()
+        data = {
+            'first_name': 'Pic',
+            'profile_picture': image
+        }
+        
+        response = self.client.patch(
+            f'/api/users/{self.user.pk}/',
+            data,
+            format='multipart'
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify the user object was updated in the DB
+        self.user.refresh_from_db()
+        self.assertTrue(bool(self.user.profile_picture))
+        self.assertIn('test_profile_pic', self.user.profile_picture.name)
+        
+        # Verify the serializer includes the profile picture URL in the response
+        self.assertIn('profile_picture', response.data)
+        self.assertIsNotNone(response.data['profile_picture'])
+    def test_remove_profile_picture(self):
+        """Test removing a profile picture by sending an empty string."""
+        # Setup: initially add an image
+        self.user.profile_picture = self.generate_dummy_image()
+        self.user.save()
+        
+        data = {
+            'profile_picture': ''
+        }
+        
+        response = self.client.patch(
+            f'/api/users/{self.user.pk}/',
+            data,
+            format='multipart'
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.user.refresh_from_db()
+        self.assertFalse(bool(self.user.profile_picture))
+        self.assertIsNone(response.data['profile_picture'])

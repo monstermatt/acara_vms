@@ -37,6 +37,11 @@ export default function Topbar() {
     }, [status, token, userId]); //only fetch when data changes
 
 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+    const profilePicSrc = baseUser?.profile_picture
+        ? (baseUser.profile_picture.startsWith('http') ? baseUser.profile_picture : `${baseUrl}${baseUser.profile_picture}`)
+        : "/profile-pic.png";
+
     return (
         <nav className ="w-full h-20 flex items-center justify-end px-8 bg-white z-0">
             <div className = "flex items-center gap-6">
@@ -50,10 +55,11 @@ export default function Topbar() {
                 <div className = "flex items-center gap-3">
                     <div className="relative h-13 w-13 shrink-0">
                         <Link href= "/profile"><Image
-                            src = "/profile-pic.png"
-                            alt = "Profile Picture"
+                            src={profilePicSrc}
+                            alt="Profile Picture"
                             fill
-                            className = "object-cover rounded-full"
+                            sizes="52px"
+                            className="object-cover rounded-full"
                         /></Link>
                     </div>
                     <div className = "">

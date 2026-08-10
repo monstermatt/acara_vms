@@ -21,6 +21,8 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
   const [error, setError] = useState<string | null>(null);
 
   // Form States
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [availabilities, setAvailabilities] = useState<TimeSlot[]>([]);
   const [initialAvailabilityIds, setInitialAvailabilityIds] = useState<number[]>([]); // Track old ones to delete
 
@@ -92,6 +94,13 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
           team: volData.team || "",
           sub_duty_preference: volData.sub_duty_preference || false,
         });
+
+        // Profile Picture Preview
+        if (volData.user.profile_picture) {
+           const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+           const picUrl = volData.user.profile_picture.startsWith('http') ? volData.user.profile_picture : `${baseUrl}${volData.user.profile_picture}`;
+           setProfileImagePreview(picUrl);
+        }
 
         // Map arrays 
         setSelectedSkills(volData.skills?.map((s: any) => s.skill_name) || []);
@@ -179,17 +188,24 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
 
     try {
       //PATCH the base User
-      const userPayload = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-      };
+      const userFormData = new FormData();
+      if (formData.first_name) userFormData.append('first_name', formData.first_name);
+      if (formData.last_name) userFormData.append('last_name', formData.last_name);
+      if (formData.email) userFormData.append('email', formData.email);
+      if (profileImageFile) {
+        userFormData.append('profile_picture', profileImageFile);
+      }
 
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${baseUserId}/`, {
+      const userRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${baseUserId}/`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(userPayload),
+        headers: { "Authorization": `Bearer ${token}` },
+        body: userFormData,
       });
+
+      if (!userRes.ok) {
+        throw new Error("Failed to update base user profile");
+      }
+      const updatedUser = await userRes.json();
 
       // Resolve Skills IDs (Create new ones if they don't exist)
       let currentSkillIds: number[] = [];
@@ -281,6 +297,7 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
           email: formData.email,
           first_name: formData.first_name,
           last_name: formData.last_name,
+          profile_picture: updatedUser.profile_picture,
         },
         gender: updatedVolunteer.gender,
         phone_number: updatedVolunteer.phone_number,
@@ -346,9 +363,33 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
             <h2 className="section-header">General Info</h2>
             <div className="flex flex-col md:flex-row gap-10 items-start">
               <div className="flex flex-col items-center flex-shrink-0 w-40">
-                <div className="w-40 h-40 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 mb-4 border border-gray-300">
-                  <UserIcon size={64} className="text-gray-500" strokeWidth={1} />
-                </div>
+                <label className="w-40 h-40 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 mb-4 border border-gray-300 cursor-pointer overflow-hidden relative group">
+                  {profileImagePreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={profileImagePreview} alt="Profile Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserIcon size={64} className="text-gray-500" strokeWidth={1} />
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <EditIcon className="text-white" />
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 10 * 1024 * 1024) {
+                          setError("Image file is too large. Maximum size is 10MB.");
+                          return;
+                        }
+                        setProfileImageFile(file);
+                        setProfileImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                </label>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 flex-grow">
