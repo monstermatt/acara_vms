@@ -29,6 +29,7 @@ export interface UserData {
     email: string;
     first_name: string;
     last_name: string;
+    profile_picture?: string | null;
   };
   gender: string;
   skills: NestedSkill[];
