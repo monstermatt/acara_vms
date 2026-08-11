@@ -463,11 +463,11 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
                     </div>
                   ))}
                   {!isAddingSkill ? (
-                    <button type="button" onClick={() => setIsAddingSkill(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
-                      <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Skill
+                    <button type="button" onClick={() => setIsAddingSkill(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
+                      <span className="text-gray-900 text-lg leading-none font-light">+</span> Add New Skill
                     </button>
                   ) : (
-                    <input type="text" autoFocus placeholder="Type and press Enter..." value={newSkillInput} onChange={(e) => setNewSkillInput(e.target.value)} onKeyDown={handleAddSkill} onBlur={() => setIsAddingSkill(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    <input type="text" autoFocus placeholder="Type and press Enter..." value={newSkillInput} onChange={(e) => setNewSkillInput(e.target.value)} onKeyDown={handleAddSkill} onBlur={() => setIsAddingSkill(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary" />
                   )}
                 </div>
               </div>
@@ -483,11 +483,11 @@ export default function EditVolunteerModal({ volunteerId, onClose, onSuccess }: 
                     </div>
                   ))}
                   {!isAddingLanguage ? (
-                    <button type="button" onClick={() => setIsAddingLanguage(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
-                      <span className="text-gray-400 text-lg leading-none font-light">+</span> Add New Language
+                    <button type="button" onClick={() => setIsAddingLanguage(true)} className="bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 flex items-center gap-2 transition-colors h-fit">
+                      <span className="text-gray-900 text-lg leading-none font-light">+</span> Add New Language
                     </button>
                   ) : (
-                    <input type="text" autoFocus placeholder="Type and press Enter..." value={newLanguageInput} onChange={(e) => setNewLanguageInput(e.target.value)} onKeyDown={handleAddLanguage} onBlur={() => setIsAddingLanguage(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+                    <input type="text" autoFocus placeholder="Type and press Enter..." value={newLanguageInput} onChange={(e) => setNewLanguageInput(e.target.value)} onKeyDown={handleAddLanguage} onBlur={() => setIsAddingLanguage(false)} className="border border-gray-300 rounded-md px-3 py-1.5 text-sm text-black focus:outline-none focus:ring-1 focus:ring-primary" />
                   )}
                 </div>
               </div>
