@@ -104,7 +104,7 @@ export default function ContactUsModal({ isOpen, onClose }: ContactUsModalProps)
                                     id="message"
                                     required
                                     rows={5}
-                                    className="input-style flex-1 bg-white resize-none"
+                                    className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary bg-white flex-1 bg-white resize-none"
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                 ></textarea>
