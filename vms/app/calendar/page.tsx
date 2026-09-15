@@ -1,6 +1,29 @@
-import MonthCalendar from "../components/CalendarView";
+'use client';
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Calendar, CalendarEvent, toCalendarEvent } from "../components/Calendar";
+import { getVisits } from "../api/getVisits";
 
 export default function CalendarPage() {
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const { data: session, status } = useSession();
+  const token = (session as any)?.accessToken;
+
+  useEffect(() => {
+    if (status !== "authenticated" || !token) return;
+
+    async function fetchAppointments() {
+      try {
+        const appointmentsData = await getVisits(token);
+        setEvents(appointmentsData.map(toCalendarEvent));
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      }
+    }
+
+    fetchAppointments();
+  }, [token, status]);
+
   return (
     <>
     <div className="p-8">
@@ -10,7 +33,7 @@ export default function CalendarPage() {
 
     <div className="px-8 pb-10 bg-white">
       <main className="w-full">
-        <MonthCalendar />
+        <Calendar events={events} />
       </main>
     </div>
     </>

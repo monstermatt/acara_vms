@@ -1,7 +1,9 @@
 import ManageDashboard from "@/app/volunteers/components/VolunteerOverviewDashboard";
 import { UserData, NestedAvailability } from "../types/volunteer";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; 
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
+export const dynamic = 'force-dynamic';
 
 export default async function VolunteerOverviewPage() {
   try {
@@ -21,7 +23,7 @@ export default async function VolunteerOverviewPage() {
         cache: "no-store",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` }) 
+          ...(token && { "Authorization": `Bearer ${token}` })
         },
       }),
     ]);

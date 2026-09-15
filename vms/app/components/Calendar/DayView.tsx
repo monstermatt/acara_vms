@@ -14,7 +14,7 @@ import { getEventsForDate,
     weekdays, 
     hours,
     HOUR_HEIGHT,
-    FULL_DAY_HEIGHT, makeEvent  } from "../calendar/calendarUtils";
+    FULL_DAY_HEIGHT, makeEvent  } from "./calendarUtils";
 
 
 export const DayView = ({ date, events }: { date: Date; events: CalendarEvent[] }) => {

@@ -41,6 +41,7 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
     const [isSuccess, setIsSuccess] = useState(false);
     const [availableSlots, setAvailableSlots]=useState<AvailableSlot[]>([]);
     const [isFetchingSlots, setIsFetchingSlots] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
 
     // Fetch availability when the date changes
     useEffect(() => {
@@ -82,16 +83,10 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
         fetchAvailability();
     }, [startDate, volunteerId, token]);
 
-  // Handle form submission
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  // Submit the booking to the backend
+  const submitBooking = async (force: boolean) => {
     setError('');
 
-    // Input validation
-    if (!startDate || !startTime || !endTime || !frequency) {
-      setError('Please fill in all fields.');
-      return;
-    }
     //Determine the actual day of the week if "One time" is selected
     let finalDayOfWeek = frequency;
     let finalEndDate = startDate; //default to single occurence
@@ -115,6 +110,7 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
       dayofweek: finalDayOfWeek, //will always send 3 letter code of day, backend will handle "NONE" case by using start_date to determine day of week
       start_time: startTime + ':00', // Backend needs time in HH:MM:SS format
       end_time: endTime + ':00',
+      force: force, // Tell backend to skip availability check if confirmed
     };
 
     try {
@@ -131,6 +127,7 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
         // Success: call callback, clear form, close modal, and show confirmation
         onSuccess();
         setIsSuccess(true);
+        setShowConfirmation(false);
         setStartDate('');
         setStartTime('10:00');
         setEndTime('14:00');
@@ -139,13 +136,43 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
       } else {
         // Error from backend
         const errorData = await response.json();
+        setShowConfirmation(false);
         setError(errorData.non_field_errors?.join(' ') || 'Error creating booking. Please try again.');
       }
     } catch (err) {
       // General fetch error
       console.error('Error creating booking:', err);
+      setShowConfirmation(false);
       setError('A network error occurred.');
     }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
+
+    // Input validation
+    if (!startDate || !startTime || !endTime || !frequency) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    // Check if the selected time falls within any available slot
+    const timeWithinAvailability = availableSlots.some((slot) => {
+      const slotStart = slot.start_time.slice(0, 5); // "HH:MM"
+      const slotEnd = slot.end_time.slice(0, 5);
+      return startTime >= slotStart && endTime <= slotEnd;
+    });
+
+    // If no availability at all, or time is outside every available window, prompt
+    if (!isFetchingSlots && !timeWithinAvailability) {
+      setShowConfirmation(true);
+      return;
+    }
+
+    // Time is within availability — submit normally (no force needed)
+    await submitBooking(false);
   };
 
     return (
@@ -169,6 +196,39 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
                 >
                     Close
                 </button>
+                </div>
+            ) : showConfirmation ? (
+                // CONFIRMATION DIALOG — shown when booking outside availability
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white p-8 rounded-3xl max-w-md w-full relative text-center">
+                        {/* Warning icon */}
+                        <div className="mx-auto mb-4 flex items-center justify-center w-16 h-16 rounded-full bg-amber-100">
+                            <svg className="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Are you sure?</h2>
+                        <p className="text-gray-500 mb-6">
+                            <span className="font-semibold text-primary">{volunteerName}</span> has no listed availability on the selected date. Do you still want to proceed with this booking?
+                        </p>
+
+                        <div className="flex gap-4 justify-center">
+                            <button 
+                                type="button" 
+                                onClick={() => submitBooking(true)} 
+                                className="btn-primary px-8"
+                            >
+                                Yes, Book Anyway
+                            </button>
+                            <button 
+                                type="button" 
+                                onClick={() => setShowConfirmation(false)} 
+                                className="btn-outline px-8 font-bold"
+                            >
+                                Go Back
+                            </button>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 // BOOKING FORM
@@ -236,8 +296,8 @@ export default function BookingModal({ volunteerId, volunteerName, onClose, onSu
                                                         </button>
                                                     ))
                                                 ) : (
-                                                    <span className="text-sm font-medium text-red-500 bg-red-50 px-3 py-1 rounded-md">
-                                                        No availability on this date.
+                                                    <span className="text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1 rounded-md">
+                                                        No availability on this date — you can still book.
                                                     </span>
                                                 )}
                                             </div>

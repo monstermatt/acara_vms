@@ -23,4 +23,3 @@ export function toCalendarEvent(item: any): CalendarEvent {
     "pink"
   );
 }
-

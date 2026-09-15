@@ -234,9 +234,14 @@ class VolunteerScheduleSerializerTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='testvolunteer',
+            email='testvolunteer@vmstest.com',
             password='testpass123'
         )
-        self.volunteer = Volunteer.objects.create(user=self.user)
+        self.volunteer = Volunteer.objects.create(
+            user=self.user,
+            phone_number='650-000-0000',
+            address='test address'
+        )
 
         self.availability = VolunteerAvailability.objects.create(
             volunteer=self.volunteer,

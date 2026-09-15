@@ -58,5 +58,3 @@ export const makeEvent = (
 }
 
 export type CalendarView = "month" | "day";
-
-

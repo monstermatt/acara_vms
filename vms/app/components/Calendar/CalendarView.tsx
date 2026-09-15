@@ -1,6 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
@@ -19,44 +18,21 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getEventsForDate, 
     formatTimeRange, 
     weekdays, 
-    CalendarView  } from "../calendar/calendarUtils";
+    CalendarView,
+    CalendarEvent  } from "./calendarUtils";
 
 import { DayView } from "./DayView";
-import { getVisits } from "../api/getVisits";
 
-import { toCalendarEvent } from "../calendar/calendarManager";
-import {CalendarEvent} from "../calendar/calendarUtils";
-
+interface CalendarProps {
+  events: CalendarEvent[];
+}
 
 // MARK: - Visualise the calendar month view with all appointments
-export default function CalendarMonthView() {
+export default function CalendarMonthView({ events }: CalendarProps) {
   const [view, setView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [visits, setVisits] = useState<CalendarEvent[]>([]);
-  const { data: session, status } = useSession(); // set variable for the session to get the token for authentication when hitting the API
-  const token = (session as any)?.accessToken; //extract token from nextauth session
 
-  useEffect(() => {
-    if (status !== "authenticated" || !token) {
-      return; 
-    }
-
-    async function fetchAppointments() {
-      try {
-        const appointmentsData = await getVisits(token);
-        const calendarEvents = appointmentsData.map((item) => toCalendarEvent(item));
-        setVisits(calendarEvents); 
-      
-        // setAppointments(appointmentsData);
-        console.log("Fetched appointments:", appointmentsData);
-      } catch (error) {
-        console.error("Error fetching appointments:", error);
-      }
-    }
-
-    fetchAppointments();
-  }, [token, status]);
   // it is important here to prevent recalculating the month grid on every time.
   const monthDays = useMemo(() => {
   const monthStart = startOfMonth(currentDate);
@@ -69,7 +45,7 @@ export default function CalendarMonthView() {
   }, [currentDate]);
 
 
-  const selectedEvents = getEventsForDate(visits, selectedDate).sort(
+  const selectedEvents = getEventsForDate(events, selectedDate).sort(
     (a, b) => a.start.getTime() - b.start.getTime(),
   );
 
@@ -208,7 +184,7 @@ export default function CalendarMonthView() {
 
                 <div className="grid grid-cols-7">
                   {monthDays.map((day, index) => {
-                    const events = getEventsForDate(visits, day);
+                    const dayEvents = getEventsForDate(events, day);
                     const muted = !isSameMonth(day, currentDate);
                     const active = isSameDay(day, selectedDate);
                     const isLastRow = index >= monthDays.length - 7;
@@ -244,7 +220,7 @@ export default function CalendarMonthView() {
                         </span>
 
                         <div className="mt-8 space-y-1 pr-1">
-                          {events.slice(0, 3).map((event) => (
+                          {dayEvents.slice(0, 3).map((event) => (
                             <div
                               key={event.id}
                               className={`truncate rounded-lg border px-2 py-1 text-[11px] ${event.color}`}
@@ -256,9 +232,9 @@ export default function CalendarMonthView() {
                             </div>
                         ))}
                         {/* If there are more than 3 events, show a "more..." indicator  otherwise it breaks the layout */}
-                        {events.length > 3 ? (
+                        {dayEvents.length > 3 ? (
                             <div className="px-1 text-[11px] text-neutral-400">
-                              {events.length - 3} more...
+                              {dayEvents.length - 3} more...
                             </div>
                           ) : null}
                         </div>
@@ -268,7 +244,7 @@ export default function CalendarMonthView() {
                 </div>
               </>
             ) : (
-              <DayView date={selectedDate} events={visits} />
+              <DayView date={selectedDate} events={events} />
             )}
           </div>
         </div>

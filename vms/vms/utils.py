@@ -90,7 +90,7 @@ def send_email(sender, recipient, subject: str, message: str) -> bool:
         logger.error("Failed to send email from %s to %s | subject: %s | error: %s", sender_email, recipient_email, subject, exc)
         return False
 
-def generate_visits(schedule):
+def generate_visits(schedule, force=False):
     # day of week mapped  to a number
     day_map = {
         'MON' : 0,
@@ -111,17 +111,18 @@ def generate_visits(schedule):
         # Checking if current day is same as day of week in schedule
         if current_date.weekday() == target_day:
 
-            # Ensuring volunteer has availability usually
-            availability_exists = VolunteerAvailability.objects.filter(
-                volunteer = schedule.volunteer,
-                dayofweek = schedule.dayofweek,
-                start_time__lte = schedule.start_time,
-                end_time__gte = schedule.end_time
-            ).exists()
-            if not availability_exists:
-                current_date += timedelta(days = 1)
-                # don't process this date foe visit further
-                continue
+            # Ensuring volunteer has availability usually — skip if force=True
+            if not force:
+                availability_exists = VolunteerAvailability.objects.filter(
+                    volunteer = schedule.volunteer,
+                    dayofweek = schedule.dayofweek,
+                    start_time__lte = schedule.start_time,
+                    end_time__gte = schedule.end_time
+                ).exists()
+                if not availability_exists:
+                    current_date += timedelta(days = 1)
+                    # don't process this date foe visit further
+                    continue
 
             # Ensuring it doesn't conflict with planned absence
             absence_exists = VolunteerAbsence.objects.filter(

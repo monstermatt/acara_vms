@@ -68,12 +68,18 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 # Serializer for volunteer schedule
 class VolunteerScheduleSerializer(serializers.ModelSerializer):
+    # Optional field: when True, skip the availability check (but still enforce absence/overlap)
+    force = serializers.BooleanField(required=False, default=False, write_only=True)
+
     class Meta:
         model = VolunteerSchedule
         fields = '__all__'
 
     # Custom validation for schedule to check on availability
     def validate(self, data):
+        # Pop 'force' so it doesn't get passed to model create
+        force = data.pop('force', False)
+
         volunteer = data.get('volunteer')
         dayofweek = data.get('dayofweek')
         start_time = data.get('start_time')
@@ -81,16 +87,17 @@ class VolunteerScheduleSerializer(serializers.ModelSerializer):
         start_date = data.get('start_date')
         end_date = data.get('end_date')
 
-        # Check availability
-        availability = VolunteerAvailability.objects.filter(
-            volunteer = volunteer,
-            dayofweek = dayofweek,
-            start_time__lte=start_time,
-            end_time__gte=end_time
-        ).exists()
+        # Check availability — skip this check if force=True
+        if not force:
+            availability = VolunteerAvailability.objects.filter(
+                volunteer = volunteer,
+                dayofweek = dayofweek,
+                start_time__lte=start_time,
+                end_time__gte=end_time
+            ).exists()
 
-        if not availability:
-            raise serializers.ValidationError("Volunteer not available on requested date/time")
+            if not availability:
+                raise serializers.ValidationError("Volunteer not available on requested date/time")
         
         # Check for planned full day absence at requested date/time
         full_day_absence = VolunteerAbsence.objects.filter(

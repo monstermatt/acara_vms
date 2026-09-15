@@ -192,8 +192,9 @@ class VolunteerScheduleViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data = request.data)
         if serializer.is_valid():
             schedule = serializer.save()
-            # auto generate a visit from the schedule
-            generate_visits(schedule)
+            # Pass force flag so visits are generated even without formal availability
+            force = request.data.get('force', False)
+            generate_visits(schedule, force=force)
             return Response(serializer.data, status = status.HTTP_201_CREATED)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
     
