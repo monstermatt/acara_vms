@@ -25,10 +25,11 @@ import { DayView } from "./DayView";
 
 interface CalendarProps {
   events: CalendarEvent[];
+  onEventClick?: (event: CalendarEvent) => void;
 }
 
 // MARK: - Visualise the calendar month view with all appointments
-export default function CalendarMonthView({ events }: CalendarProps) {
+export default function CalendarMonthView({ events, onEventClick }: CalendarProps) {
   const [view, setView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -223,7 +224,8 @@ export default function CalendarMonthView({ events }: CalendarProps) {
                           {dayEvents.slice(0, 3).map((event) => (
                             <div
                               key={event.id}
-                              className={`truncate rounded-lg border px-2 py-1 text-[11px] ${event.color}`}
+                              onClick={(e) => { e.stopPropagation(); onEventClick?.(event); }}
+                              className={`truncate rounded-lg border px-2 py-1 text-[11px] cursor-pointer hover:opacity-80 ${event.color}`}
                             >
                               <span className="font-medium">{event.title}</span>
                               <span className="ml-1 opacity-80">
@@ -244,7 +246,7 @@ export default function CalendarMonthView({ events }: CalendarProps) {
                 </div>
               </>
             ) : (
-              <DayView date={selectedDate} events={events} />
+              <DayView date={selectedDate} events={events} onEventClick={onEventClick} />
             )}
           </div>
         </div>

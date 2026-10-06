@@ -11,6 +11,8 @@ export type CalendarEvent = {
   start: Date;
   end: Date;
   color: string;
+  kind: "visit" | "opportunity";
+  meta?: Record<string, any>;
 };
 
 export const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -30,7 +32,9 @@ export const formatTimeRange = (start: Date, end: Date) => {
 
 export const eventColors = {
   pink: "bg-[#FFF6F1] text-[#CD5000] border-[#CD5000]",
-  // add more colors if needed
+  opportunityOpen: "bg-[#E6FFFA] text-[#008080] border-[#008080] border-dashed border-2",
+  opportunityMine: "bg-[#EBF8FF] text-[#2B6CB0] border-[#2B6CB0]",
+  opportunityFull: "bg-[#EDF2F7] text-[#4A5568] border-[#A0AEC0]",
 } as const;
 
 // Create a calendar event with the given properties. 
@@ -45,6 +49,8 @@ export const makeEvent = (
   endHour: number,
   endMinute: number,
   color: keyof typeof eventColors,
+  kind: "visit" | "opportunity" = "visit",
+  meta?: Record<string, any>
 ): CalendarEvent => {
   const base = new Date(year, monthIndex, day);
 
@@ -54,6 +60,8 @@ export const makeEvent = (
     start: setMinutes(setHours(base, startHour), startMinute),
     end: setMinutes(setHours(base, endHour), endMinute),
     color: eventColors[color],
+    kind,
+    meta,
   };
 }
 

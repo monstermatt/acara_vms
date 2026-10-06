@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import MyTokenObtainPairSerializer, UserSerializer, VolunteerSerializer, SkillSerializer, RecognitionSerializer, LanguageSerializer, VolunteeringPreferenceSerializer, VolunteerAbsenceSerializer, VolunteerScheduleSerializer, VisitSerializer, VolunteerAvailabilitySerializer, VolunteerAvailableSlotSerializer, SendEmailSerializer, TemplateSerializer
+from .serializers import MyTokenObtainPairSerializer, UserSerializer, VolunteerSerializer, SkillSerializer, RecognitionSerializer, LanguageSerializer, VolunteeringPreferenceSerializer, VolunteerAbsenceSerializer, VolunteerScheduleSerializer, VisitSerializer, VolunteerAvailabilitySerializer, VolunteerAvailableSlotSerializer, SendEmailSerializer, TemplateSerializer, OpportunitySerializer, OpportunityShiftSerializer, OpportunitySignupSerializer
 from rest_framework import serializers, viewsets
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,8 +9,10 @@ from django.contrib.auth.decorators import login_required
 import json
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from vms.models import User, Volunteer, VolunteerAbsence, VolunteerAvailability, Visit, VolunteeringPreference, VolunteerSchedule, Recognition, Skill, Language, Template, MessageHistory
-from .utils import generate_visits, compute_available_slots_in_a_day, send_email
+from vms.models import User, Volunteer, VolunteerAbsence, VolunteerAvailability, Visit, VolunteeringPreference, VolunteerSchedule, Recognition, Skill, Language, Template, MessageHistory, Opportunity, OpportunityShift, OpportunitySignup
+from .utils import generate_visits, compute_available_slots_in_a_day, send_email, generate_opportunity_shifts, end_signup
+from .permissions import IsCoordinatorOrAdmin
+from django.db import transaction
 from rest_framework.decorators import action
 from datetime import datetime
 #for email verification and password reset
@@ -74,6 +76,13 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     # NOTE to front end developers or API consumers: 
     # Use this syntax to call this API to find a volunteer's availability:
     # GET /api/volunteers/1/available-slots_in_a_day/?start_date=2026-04-01
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        if not hasattr(request.user, 'volunteer_profile'):
+            return Response({'error': 'Not a volunteer'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(request.user.volunteer_profile)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['get'], url_path='available-slots-in-a-day')
     def available_slots_in_a_day(self, request, pk=None):
@@ -176,6 +185,14 @@ class VisitViewSet(viewsets.ModelViewSet):
     queryset = Visit.objects.all()
     serializer_class = VisitSerializer
     # TODO nice to have: customize volunteer and visit_date create code 
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Visit.objects.none()
+        if getattr(user, 'role', None) == 'VOLUN':
+            return Visit.objects.filter(volunteer__user=user)
+        return Visit.objects.all()
 
 # View for Availability
 class VolunteerAvailabilityViewSet(viewsets.ModelViewSet):
@@ -341,3 +358,159 @@ class SendMessageView(APIView):
         except Exception as e:
             logger.error(f"Failed to send SMS: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class OpportunityViewSet(viewsets.ModelViewSet):
+    queryset = Opportunity.objects.all()
+    serializer_class = OpportunitySerializer
+    permission_classes = [IsCoordinatorOrAdmin]
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        opportunity = serializer.save(created_by=request.user)
+        generate_opportunity_shifts(opportunity)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel(self, request, pk=None):
+        opportunity = self.get_object()
+        opportunity.status = Opportunity.Status.CANCELLED
+        opportunity.save()
+        # Cancel all future shifts that are open
+        future_shifts = opportunity.shifts.filter(shift_date__gte=datetime.now().date(), is_cancelled=False)
+        future_shifts.update(is_cancelled=True)
+        # We should theoretically cancel all signups, or notify. 
+        # Left for future iteration.
+        return Response({'status': 'cancelled'})
+
+
+class OpportunityShiftViewSet(viewsets.ModelViewSet):
+    serializer_class = OpportunityShiftSerializer
+
+    def get_queryset(self):
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+        qs = OpportunityShift.objects.all()
+        if start:
+            qs = qs.filter(shift_date__gte=start)
+        if end:
+            qs = qs.filter(shift_date__lte=end)
+        
+        user = self.request.user
+        if getattr(user, 'role', None) == 'VOLUN':
+            # Volunteers only see non-cancelled shifts for OPEN opportunities
+            qs = qs.filter(is_cancelled=False, opportunity__status=Opportunity.Status.OPEN)
+        
+        return qs
+
+    @action(detail=True, methods=['post'], url_path='accept')
+    @transaction.atomic
+    def accept(self, request, pk=None):
+        shift = get_object_or_404(OpportunityShift.objects.select_for_update(), pk=pk)
+        
+        if shift.is_cancelled or shift.opportunity.status == Opportunity.Status.CANCELLED:
+            return Response({'error': 'This shift is cancelled.'}, status=400)
+            
+        if shift.shift_date < datetime.now().date():
+            return Response({'error': 'Cannot accept past shifts.'}, status=400)
+            
+        user = request.user
+        if not hasattr(user, 'volunteer_profile'):
+            return Response({'error': 'Only volunteers can accept.'}, status=400)
+            
+        volunteer = user.volunteer_profile
+        
+        # Check capacity
+        filled_count = shift.signups.filter(status=OpportunitySignup.Status.ACCEPTED).count()
+        if filled_count >= shift.opportunity.volunteers_needed:
+            return Response({'error': 'This shift is already full.'}, status=400)
+            
+        # Check if already accepted
+        if shift.signups.filter(volunteer=volunteer, status=OpportunitySignup.Status.ACCEPTED).exists():
+            return Response({'error': 'You have already accepted this shift.'}, status=400)
+            
+        # Optional: Conflict checking would go here
+        
+        # Create visit
+        visit = Visit.objects.create(
+            schedule=None,
+            visit_date=shift.shift_date,
+            visit_start_time=shift.start_time,
+            visit_end_time=shift.end_time,
+            volunteer=volunteer
+        )
+        
+        # Create signup
+        signup = OpportunitySignup.objects.create(
+            shift=shift,
+            volunteer=volunteer,
+            status=OpportunitySignup.Status.ACCEPTED,
+            visit=visit
+        )
+        
+        # Send email to coordinator
+        if shift.opportunity.created_by:
+            send_email(
+                sender=user,
+                recipient=shift.opportunity.created_by,
+                subject=f"Volunteer Signed Up: {shift.opportunity.title}",
+                message=f"{volunteer.user.first_name} {volunteer.user.last_name} has signed up for {shift.opportunity.title} on {shift.shift_date}."
+            )
+            
+        return Response({'status': 'accepted', 'signup_id': signup.id})
+
+    @action(detail=True, methods=['post'], url_path='withdraw')
+    @transaction.atomic
+    def withdraw(self, request, pk=None):
+        shift = self.get_object()
+        user = request.user
+        
+        if not hasattr(user, 'volunteer_profile'):
+            return Response({'error': 'Only volunteers can withdraw.'}, status=400)
+            
+        volunteer = user.volunteer_profile
+        
+        try:
+            signup = shift.signups.get(volunteer=volunteer, status=OpportunitySignup.Status.ACCEPTED)
+        except OpportunitySignup.DoesNotExist:
+            return Response({'error': 'You are not signed up for this shift.'}, status=400)
+            
+        reason = request.data.get('reason', '')
+        end_signup(signup, user, OpportunitySignup.Status.WITHDRAWN, reason)
+        
+        # Send email to coordinator
+        if shift.opportunity.created_by:
+            send_email(
+                sender=user,
+                recipient=shift.opportunity.created_by,
+                subject=f"Volunteer Withdrew: {shift.opportunity.title}",
+                message=f"{volunteer.user.first_name} {volunteer.user.last_name} has withdrawn from {shift.opportunity.title} on {shift.shift_date}. Reason: {reason}"
+            )
+            
+        return Response({'status': 'withdrawn'})
+
+
+class OpportunitySignupViewSet(viewsets.ModelViewSet):
+    queryset = OpportunitySignup.objects.all()
+    serializer_class = OpportunitySignupSerializer
+    permission_classes = [IsCoordinatorOrAdmin]
+
+    @action(detail=True, methods=['post'], url_path='remove')
+    @transaction.atomic
+    def remove(self, request, pk=None):
+        signup = self.get_object()
+        reason = request.data.get('reason', '')
+        
+        end_signup(signup, request.user, OpportunitySignup.Status.REMOVED, reason)
+        
+        # Notify volunteer
+        send_email(
+            sender=request.user,
+            recipient=signup.volunteer.user,
+            subject=f"Removed from Opportunity: {signup.shift.opportunity.title}",
+            message=f"You have been removed from {signup.shift.opportunity.title} on {signup.shift.shift_date}. Reason: {reason}"
+        )
+        
+        return Response({'status': 'removed'})

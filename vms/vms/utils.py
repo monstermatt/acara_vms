@@ -208,3 +208,55 @@ def compute_available_slots_in_a_day(volunteer, date, availabilities, absences, 
     
     
 
+def generate_opportunity_shifts(opportunity):
+    from .models import OpportunityShift
+    
+    current_date = opportunity.start_date
+    shifts = []
+
+    # If it's a one-time opportunity
+    if opportunity.recurrence == opportunity.Recurrence.NONE:
+        shifts.append(OpportunityShift(
+            opportunity=opportunity,
+            shift_date=opportunity.start_date,
+            start_time=opportunity.start_time,
+            end_time=opportunity.end_time,
+        ))
+    else:
+        # It's weekly or biweekly
+        day_map = {
+            'MON' : 0,
+            'TUE' : 1,
+            'WED' : 2,
+            'THU' : 3,
+            'FRI' : 4,
+            'SAT' : 5,
+            'SUN' : 6
+        }
+        target_day = day_map.get(opportunity.dayofweek)
+        if target_day is None:
+            return  # Safety fallback
+        
+        while current_date <= opportunity.end_date:
+            if current_date.weekday() == target_day:
+                shifts.append(OpportunityShift(
+                    opportunity=opportunity,
+                    shift_date=current_date,
+                    start_time=opportunity.start_time,
+                    end_time=opportunity.end_time,
+                ))
+                if opportunity.recurrence == opportunity.Recurrence.BIWEEKLY:
+                    current_date += timedelta(days=14)
+                    continue
+            current_date += timedelta(days=1)
+            
+    OpportunityShift.objects.bulk_create(shifts)
+
+def end_signup(signup, by_user, status, reason=""):
+    signup.status = status
+    signup.ended_at = timezone.now()
+    signup.ended_by = by_user
+    signup.end_reason = reason
+    signup.save()
+    if signup.visit:
+        signup.visit.delete()

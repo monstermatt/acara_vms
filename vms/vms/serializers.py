@@ -1,6 +1,6 @@
 # pyrefly: ignore [missing-import]
 from rest_framework import serializers
-from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference, VolunteerSchedule, VolunteerAbsence, VolunteerAvailability, Visit, Template, MessageHistory
+from .models import Volunteer, User, Skill, Recognition, Language,VolunteeringPreference, VolunteerSchedule, VolunteerAbsence, VolunteerAvailability, Visit, Template, MessageHistory, Opportunity, OpportunityShift, OpportunitySignup
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Serializer for the User model
@@ -196,4 +196,71 @@ class MessageHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MessageHistory
         fields = '__all__'
-        
+
+# Serializer for Opportunity
+class OpportunitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Opportunity
+        fields = '__all__'
+
+# Serializer for OpportunitySignup
+class OpportunitySignupSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = OpportunitySignup
+        fields = ['id', 'volunteer', 'name', 'status', 'accepted_at', 'ended_at', 'end_reason']
+
+    def get_name(self, obj):
+        return f"{obj.volunteer.user.first_name} {obj.volunteer.user.last_name}"
+
+# Serializer for OpportunityShift
+class OpportunityShiftSerializer(serializers.ModelSerializer):
+    opportunity = OpportunitySerializer(read_only=True)
+    opportunity_id = serializers.PrimaryKeyRelatedField(
+        queryset=Opportunity.objects.all(),
+        source='opportunity',
+        write_only=True
+    )
+    filled_count = serializers.SerializerMethodField()
+    is_full = serializers.SerializerMethodField()
+    my_signup_id = serializers.SerializerMethodField()
+    signups = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OpportunityShift
+        fields = ['id', 'opportunity', 'opportunity_id', 'shift_date', 'start_time', 'end_time', 
+                  'is_cancelled', 'filled_count', 'is_full', 'my_signup_id', 'signups']
+
+    def get_filled_count(self, obj):
+        return obj.signups.filter(status=OpportunitySignup.Status.ACCEPTED).count()
+
+    def get_is_full(self, obj):
+        return self.get_filled_count(obj) >= obj.opportunity.volunteers_needed
+
+    def get_my_signup_id(self, obj):
+        request = self.context.get('request')
+        if request and request.user and getattr(request.user, 'role', None) == 'VOLUN':
+            try:
+                signup = obj.signups.get(volunteer__user=request.user, status=OpportunitySignup.Status.ACCEPTED)
+                return signup.id
+            except OpportunitySignup.DoesNotExist:
+                return None
+        return None
+
+    def get_signups(self, obj):
+        request = self.context.get('request')
+        if request and request.user and getattr(request.user, 'role', None) in ['COORD', 'ADMIN']:
+            active_signups = obj.signups.filter(status=OpportunitySignup.Status.ACCEPTED)
+            return OpportunitySignupSerializer(active_signups, many=True).data
+        return []
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Adding volunteers_needed from parent for convenience
+        representation['volunteers_needed'] = instance.opportunity.volunteers_needed
+        # Only COORD/ADMIN get signups, VOLUN get empty array or we just remove the field?
+        request = self.context.get('request')
+        if request and request.user and getattr(request.user, 'role', None) == 'VOLUN':
+            representation.pop('signups', None)
+        return representation

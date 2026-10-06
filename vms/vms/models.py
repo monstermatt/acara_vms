@@ -234,3 +234,97 @@ class MessageHistory(models.Model):
     def __str__(self):
         return f"From: {self.sender} | To: {self.recipient.user.username} | Sent: {self.date_sent}"
 
+
+# --- Volunteer Opportunities ---
+
+class Opportunity(models.Model):
+    """A coordinator-created opening (one-time or recurring)."""
+    class Recurrence(models.TextChoices):
+        NONE = "NONE", _("One time")
+        WEEKLY = "WEEKLY", _("Weekly")
+        BIWEEKLY = "BIWEEKLY", _("Every 2 weeks")
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", _("Open")
+        CANCELLED = "CANCELLED", _("Cancelled")
+
+    title = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    preference = models.ForeignKey(VolunteeringPreference, null=True, blank=True,
+                                   on_delete=models.SET_NULL)          # duty type (reuse)
+    required_skills = models.ManyToManyField(Skill, blank=True)        # optional
+    required_languages = models.ManyToManyField(Language, blank=True)  # optional
+
+    start_date = models.DateField()
+    end_date = models.DateField()               # == start_date when one-time
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    recurrence = models.CharField(max_length=8, choices=Recurrence.choices,
+                                  default=Recurrence.NONE)
+    dayofweek = models.CharField(max_length=3, choices=DayOfWeek.choices, blank=True)
+
+    volunteers_needed = models.PositiveSmallIntegerField(default=1)
+    status = models.CharField(max_length=9, choices=Status.choices, default=Status.OPEN)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,
+                                   related_name="created_opportunities")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=models.Q(end_time__gt=models.F("start_time")),
+                                   name="opp_end_after_start"),
+            models.CheckConstraint(condition=models.Q(end_date__gte=models.F("start_date")),
+                                   name="opp_end_date_after_start"),
+            models.CheckConstraint(condition=models.Q(volunteers_needed__gte=1),
+                                   name="opp_needs_at_least_one"),
+        ]
+
+    def __str__(self):
+        return self.title
+
+
+class OpportunityShift(models.Model):
+    """One dated occurrence of an Opportunity."""
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name="shifts")
+    shift_date = models.DateField(db_index=True)
+    start_time = models.TimeField()     # copied from parent; can be changed per shift
+    end_time = models.TimeField()
+    is_cancelled = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["opportunity", "shift_date"],
+                                               name="uniq_shift_per_day")]
+
+    def __str__(self):
+        return f"{self.opportunity.title} on {self.shift_date}"
+
+
+class OpportunitySignup(models.Model):
+    """Volunteer acceptance."""
+    class Status(models.TextChoices):
+        ACCEPTED = "ACCEPTED", _("Accepted")
+        WITHDRAWN = "WITHDRAWN", _("Withdrawn by volunteer")
+        REMOVED = "REMOVED", _("Removed by coordinator")
+
+    shift = models.ForeignKey(OpportunityShift, on_delete=models.CASCADE, related_name="signups")
+    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE,
+                                  related_name="opportunity_signups")
+    status = models.CharField(max_length=9, choices=Status.choices, default=Status.ACCEPTED)
+    accepted_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(null=True, blank=True)       # when withdrawn/removed
+    ended_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+                                 related_name="ended_signups")    # volunteer or coordinator
+    end_reason = models.CharField(max_length=255, blank=True)    # optional note
+    visit = models.OneToOneField(Visit, null=True, blank=True, on_delete=models.SET_NULL,
+                                 related_name="opportunity_signup")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["shift", "volunteer"], condition=models.Q(status="ACCEPTED"),
+            name="uniq_active_signup")]
+
+    def __str__(self):
+        return f"{self.volunteer} for {self.shift}"
+

@@ -20,6 +20,10 @@ router.register(r'templates', views.TemplateViewSet)
 router.register(r'matchingbeta', views.MatchingBetaViewSet, 'matchingbeta')
 router.register(r'email', views.SendEmailViewSet, basename='email')
 
+router.register(r'opportunities', views.OpportunityViewSet, basename='opportunity')
+router.register(r'opportunity-shifts', views.OpportunityShiftViewSet, basename='opportunity-shift')
+router.register(r'opportunity-signups', views.OpportunitySignupViewSet, basename='opportunity-signup')
+
 
 urlpatterns = [
     path("", include(router.urls)),

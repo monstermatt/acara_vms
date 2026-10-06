@@ -17,7 +17,7 @@ import { getEventsForDate,
     FULL_DAY_HEIGHT, makeEvent  } from "./calendarUtils";
 
 
-export const DayView = ({ date, events }: { date: Date; events: CalendarEvent[] }) => {
+export const DayView = ({ date, events, onEventClick }: { date: Date; events: CalendarEvent[], onEventClick?: (event: CalendarEvent) => void }) => {
   const dayEvents = getEventsForDate(events, date).sort(
     (a, b) => a.start.getTime() - b.start.getTime(),
   );
@@ -131,7 +131,8 @@ export const DayView = ({ date, events }: { date: Date; events: CalendarEvent[] 
               return (
                 <div
                   key={event.id}
-                  className={`pointer-events-auto absolute overflow-hidden rounded-xl border px-3 py-2 shadow-sm ${event.color}`}
+                  onClick={() => onEventClick?.(event)}
+                  className={`pointer-events-auto absolute overflow-hidden rounded-xl border px-3 py-2 shadow-sm cursor-pointer ${event.color}`}
                   style={{ top, height, width, left }}
                 >
                   <p className="truncate text-sm font-semibold">{event.title}</p>
