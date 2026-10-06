@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import EditVolunteerModal from "../volunteers/components/EditVolunteerModal"; 
 import { UserData } from "../volunteers/types/volunteer";
+import { Calendar, CalendarEvent, toCalendarEvent, shiftToCalendarEvent } from "../components/Calendar";
+import { getVisits } from "../api/getVisits";
+import { getOpportunityShifts } from "../api/getOpportunityShifts";
+import OpportunityDetailsModal from "../calendar/components/OpportunityDetailsModal";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -16,6 +20,45 @@ export default function ProfilePage() {
   const [volunteerId, setVolunteerId] = useState<number | null>(null);  
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [selectedShiftEvent, setSelectedShiftEvent] = useState<CalendarEvent | null>(null);
+
+  const fetchAppointments = async () => {
+    if (status !== "authenticated" || !token || role !== "VOLUN") return;
+    try {
+      const [appointmentsData, shiftsData] = await Promise.all([
+        getVisits(token),
+        getOpportunityShifts(token)
+      ]);
+      
+      const acceptedShifts = shiftsData.filter((s: any) => s.my_signup_id);
+      
+      const filteredVisits = appointmentsData.filter((v: any) => {
+        return !acceptedShifts.some((s: any) => 
+          s.shift_date === v.visit_date && 
+          s.start_time === v.visit_start_time
+        );
+      });
+
+      const visitEvents = filteredVisits.map(toCalendarEvent);
+      const shiftEvents = shiftsData.map(shiftToCalendarEvent);
+      
+      setEvents([...visitEvents, ...shiftEvents]);
+    } catch (error) {
+      console.error("Error fetching appointments or shifts:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [token, status, role]);
+
+  const handleEventClick = (event: CalendarEvent) => {
+    if (event.kind === "opportunity") {
+      setSelectedShiftEvent(event);
+    }
+  };
 
   useEffect(() => {
     async function fetchProfileData() {
@@ -138,6 +181,14 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Calendar Section exclusively for Volunteers */}
+      {role === "VOLUN" && (
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">My Schedule & Opportunities</h2>
+          <Calendar events={events} onEventClick={handleEventClick} />
+        </div>
+      )}
+
       {/* Render modal exclusively for Volunteers */}
       {isEditModalOpen && volunteerId && role === "VOLUN" && (
         <EditVolunteerModal
@@ -154,6 +205,14 @@ export default function ProfilePage() {
             }));
             setIsEditModalOpen(false);
           }}
+        />
+      )}
+
+      {selectedShiftEvent && (
+        <OpportunityDetailsModal 
+          shift={selectedShiftEvent.meta} 
+          onClose={() => setSelectedShiftEvent(null)} 
+          onSuccess={() => { setSelectedShiftEvent(null); fetchAppointments(); }} 
         />
       )}
     </main>
