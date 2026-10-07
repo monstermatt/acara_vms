@@ -6,6 +6,7 @@ import Sidebar from '@/app/components/Sidebar';
 import './globals.css';
 import Topbar from './components/topbar';
 import { SessionProvider } from 'next-auth/react';
+import SessionKeepAlive from './components/SessionKeepAlive';
 import { useState } from 'react';
 
 const quicksand = Quicksand({ subsets: ['latin'] });
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={quicksand.className}>
         <SessionProvider>
+          <SessionKeepAlive />
           {isLoginPage ? (
             children
           ) : (

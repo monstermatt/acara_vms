@@ -1,4 +1,3 @@
-import next from "next";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextRequest } from "next/server";
@@ -29,8 +28,10 @@ async function refreshAccessToken(token: any) {
       accessToken: refreshedTokens.access,
       expiresAt: decodeJwt(refreshedTokens.access).exp * 1000,
       refreshToken: refreshedTokens.refresh ?? token.refreshToken,
+      error: undefined, // clear any error left over from a previous failed refresh
     };
   } catch (error) {
+    // Surfaced to the client via the session callback so SessionKeepAlive can sign the user out cleanly
     return { ...token, error: "RefreshAccessTokenError" };
   }
 }
@@ -38,8 +39,10 @@ async function refreshAccessToken(token: any) {
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
-    maxAge: 30 * 60, // 30 minute time out
-    updateAge: 5 * 60, // extend session every 5 minutes of activity
+    // 30 minute idle time out. With the JWT strategy the cookie expiry is pushed forward every time
+    // /api/auth/session is hit (updateAge only applies to database sessions, so it is not used here).
+    // SessionKeepAlive (app/components/SessionKeepAlive.tsx) hits the session endpoint while the user is active.
+    maxAge: 30 * 60,
   },
   providers: [
     CredentialsProvider({
@@ -91,8 +94,9 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
-      // Return previous token if the access token has not expired yet w/ 10 second buffer
-      if (Date.now() < (token as any).expiresAt - 10000) {
+      // Return previous token if the access token has not expired yet w/ 60 second buffer.
+      // The client may hold the access token for a while before using it, so refresh early.
+      if (Date.now() < (token as any).expiresAt - 60_000) {
         return token;
       }
 
@@ -101,6 +105,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       (session as any).accessToken = token.accessToken;
+      (session as any).error = token.error; // e.g. "RefreshAccessTokenError"
       if (session.user) {
         (session.user as any).role = token.role;
         (session.user as any).id = token.id;

@@ -36,7 +36,7 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 BEDROCK_MODEL_ID = os.getenv('BEDROCK_MODEL_ID', 'us.amazon.nova-2-lite-v1:0')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '3.148.180.239', 'acaravolunteers.com']
 

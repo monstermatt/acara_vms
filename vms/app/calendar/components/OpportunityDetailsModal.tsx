@@ -130,12 +130,12 @@ export default function OpportunityDetailsModal({ shift, onClose, onSuccess }: O
                     <div className="mb-6">
                         <h4 className="font-bold text-gray-700 mb-2">Signed-up Volunteers</h4>
                         {shift.signups.length === 0 ? (
-                            <p className="text-gray-500 text-sm">No volunteers have signed up yet.</p>
+                            <p className="text-gray-700 text-sm">No volunteers have signed up yet.</p>
                         ) : (
                             <ul className="space-y-2">
                                 {shift.signups.map((signup: any) => (
                                     <li key={signup.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                                        <span className="text-sm font-medium">{signup.name}</span>
+                                        <span className="text-sm text-gray-700 font-medium">{signup.name}</span>
                                         <button
                                             onClick={() => handleRemoveVolunteer(signup.id)}
                                             disabled={loading}
