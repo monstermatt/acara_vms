@@ -1,7 +1,6 @@
 # Acara VMS (Volunteer Management System)
 
-Acara VMS is a low-cost, open-source Volunteer Management System originally created by a team of 6 individuals as a capstone project for a master's program at Harvard's Division of Continuing Education (HES). 
-
+Acara VMS is a low-cost, open-source Volunteer Management System.
 It was specifically designed for a small hospice agency that had outgrown Excel spreadsheets for managing volunteers but did not want the overhead and expense of large enterprise solutions like Salesforce Volunteers. This makes it an ideal solution for other small non-profits and agencies with similar needs.
 
 ## Tech Stack
