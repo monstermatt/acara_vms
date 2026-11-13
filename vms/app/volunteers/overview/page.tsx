@@ -1,14 +1,14 @@
 import ManageDashboard from "@/app/volunteers/components/VolunteerOverviewDashboard";
 import { UserData, NestedAvailability } from "../types/volunteer";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
 export default async function VolunteerOverviewPage() {
   try {
     const session = await getServerSession(authOptions);
-    const token = (session as any)?.accessToken;
+    const token = session?.accessToken;
 
     // Fetch both endpoints 
     const [volRes, availRes] = await Promise.all([

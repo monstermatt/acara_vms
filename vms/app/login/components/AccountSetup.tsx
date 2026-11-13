@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { UnhidePasswordIcon, HidePasswordIcon } from '@/icons';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
@@ -22,28 +22,31 @@ const AccountSetup = ({ setView, mode = 'new' }: Props) => {
 
     const submitSetup = async (e: React.SyntheticEvent) => {
         e.preventDefault()
-        if (password != confirmPassword) {
+        if (password !== confirmPassword) {
             setError('Passwords do not match')
             return
         }
-    //Django token verification and password reset API call
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/confirm-password-reset/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({uid, token, password}),
-    })
-    if (res.ok) {
-        setSuccess(true);
-    } else {
-        setError('Failed to reset password. Please try again.')
-    }
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters')
+            return
+        }
 
-    // Placeholder for better password strength logic
-    if (password.length < 5) {
-        setError('Password must be at least 5 characters')
-        return
-    }
-    setSuccess(true)
+        try {
+            // Django token verification and password reset API call
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/confirm-password-reset/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid, token, password }),
+            })
+            if (res.ok) {
+                setSuccess(true);
+            } else {
+                const errData = await res.json().catch(() => null);
+                setError(errData?.error || 'Failed to reset password. Please try again.');
+            }
+        } catch {
+            setError('Failed to reset password. Please try again.')
+        }
     }
 
     // Show/hide password button

@@ -53,6 +53,41 @@ class UserAPITests(APITestCase):
         response = self.client.get(f'/api/users/{self.user.pk}/')
         self.assertEqual(response.status_code, 200)
 
+    def test_volunteer_cannot_escalate_own_role(self):
+        vol_user = User.objects.create_user(
+            username='vol_esc',
+            email='vol_esc@vmstest.com',
+            role=User.Role.VOLUNTEER,
+            is_active=True
+        )
+        self.client.force_authenticate(user=vol_user)
+        response = self.client.patch(f'/api/users/{vol_user.pk}/', {
+            'role': User.Role.ADMIN,
+            'first_name': 'Updated'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        vol_user.refresh_from_db()
+        self.assertEqual(vol_user.role, User.Role.VOLUNTEER)
+        self.assertEqual(vol_user.first_name, 'Updated')
+
+    def test_volunteer_cannot_access_other_users(self):
+        vol_user = User.objects.create_user(
+            username='vol_isolated',
+            email='vol_isolated@vmstest.com',
+            role=User.Role.VOLUNTEER,
+            is_active=True
+        )
+        self.client.force_authenticate(user=vol_user)
+        response = self.client.get(f'/api/users/{self.user.pk}/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_password_reset_requires_internal_secret(self):
+        self.client.logout()
+        response = self.client.post('/api/password-reset-request/', {
+            'email': self.user.email
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_update_user(self):
         ...
 

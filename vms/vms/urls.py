@@ -28,8 +28,6 @@ router.register(r'opportunity-signups', views.OpportunitySignupViewSet, basename
 urlpatterns = [
     path("", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path('api/token/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), 
     path('password-reset-request/', views.password_reset_request, name='password_reset_request'),
     path('confirm-password-reset/', views.confirm_password_reset, name='confirm_password_reset'),
     path('api/messages/send/', SendMessageView.as_view(), name='send_message'),

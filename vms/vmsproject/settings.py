@@ -27,6 +27,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+NEXTAUTH_SECRET = os.environ.get('NEXTAUTH_SECRET', '')
 
 # AI matching reqs
 AI_SERVICE = os.getenv('AI_PROVIDER', 'bedrock')
@@ -67,7 +68,10 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    )
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'auth': '10/minute',
+    },
 }
 
 # Set token lifetimes for JWT authentication
@@ -78,7 +82,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS' : True,
     'UPDATE_LAST_LOGIN': True,
-    'ALGORITH': 'HS256',
+    'ALGORITHM': 'HS256',
 }
 
 #specify front-end origns

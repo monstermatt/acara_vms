@@ -1,28 +1,38 @@
 import nodemailer from 'nodemailer';
 import { NextResponse } from "next/server";
 
+const BACKEND_BASE_URL =
+    process.env.NEXTAUTH_BACKEND_URL || process.env.NEXT_PUBLIC_BASE_URL;
+
 export async function POST(req: Request) {
     const { email } = await req.json();
 
-    // Call Django endpoint
-    const djangoRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/password-reset-request/`, {
+    if (!email || typeof email !== 'string') {
+        return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    // Call Django endpoint using shared internal secret so reset tokens cannot be requested directly by external clients
+    const djangoRes = await fetch(`${BACKEND_BASE_URL}/api/password-reset-request/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Internal-Secret': process.env.NEXTAUTH_SECRET || '',
+        },
         body: JSON.stringify({ email }),
     });
 
-    const data = await djangoRes.json();
+    const data = await djangoRes.json().catch(() => ({}));
 
     if (!djangoRes.ok) {
-        // Handle Django errors without exposing to client side
-        console.error("Django rejected password reset:", await djangoRes.text());
+        // Handle Django errors without exposing internal details to client side
+        console.error("Django rejected password reset:", data);
         return NextResponse.json({ error: "Failed to request password reset from backend" }, { status: djangoRes.status });
     }
 
     // If Django returns a token, send the email
     if (data.token && data.uid) {
         // Construct the frontend URL
-        const resetLink = `${process.env.NEXTAUTH_URL}/login/?uid=${data.uid}&token=${data.token}`;
+        const resetLink = `${process.env.NEXTAUTH_URL}/login/?uid=${encodeURIComponent(data.uid)}&token=${encodeURIComponent(data.token)}`;
 
         // Configure Nodemailer
         const transporter = nodemailer.createTransport({
@@ -53,12 +63,8 @@ export async function POST(req: Request) {
                 <p>Thank you,<br>Acara Volunteer Management System Team</p>
                 </div>`,
         });
-
-
-        return NextResponse.json({ success: true });
-    } else {
-        console.error("Django returned 200 but was missing token or uid.", data);
-        return NextResponse.json({ error: "Invalid response from server" }, { status: 500 });
     }
 
+    // Always return 200 success to prevent email enumeration
+    return NextResponse.json({ success: true });
 }

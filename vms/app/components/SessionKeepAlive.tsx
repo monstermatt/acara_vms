@@ -62,7 +62,7 @@ export default function SessionKeepAlive() {
 
   // The refresh token was rejected by Django (expired/invalid), so the session can't be recovered.
   useEffect(() => {
-    if ((session as any)?.error === 'RefreshAccessTokenError') {
+    if (session?.error === 'RefreshAccessTokenError') {
       signOut({ callbackUrl: '/login' });
     }
   }, [session]);

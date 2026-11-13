@@ -7,7 +7,16 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 'role', 'profile_picture'] 
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_active', 'role', 'profile_picture']
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        # Prevent non-admin/coordinator users from escalating their own role or changing active status
+        if self.instance is not None and user and getattr(user, 'role', None) not in ['ADMIN', 'COORD']:
+            attrs.pop('role', None)
+            attrs.pop('is_active', None)
+        return super().validate(attrs)
 
 # NOTE: Serializers of many to many fields need to be created before referencing in Volunteer and other calling tables
 

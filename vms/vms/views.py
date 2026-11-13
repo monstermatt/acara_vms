@@ -16,10 +16,14 @@ from django.db import transaction
 from rest_framework.decorators import action
 from datetime import datetime
 #for email verification and password reset
-from rest_framework.decorators import api_view, permission_classes
+import secrets
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.response import Response
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
@@ -35,16 +39,35 @@ from twilio.rest import Client
 from django.conf import settings
 import logging
 
+
+class AuthRateThrottle(AnonRateThrottle):
+    scope = 'auth'
+
+
 # Create your views here.
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     permission_classes = [AllowAny]
+    throttle_classes = [AuthRateThrottle]
 
 # NOTE To understand this better, please review documentation: https://www.django-rest-framework.org
 # View for User
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'destroy']:
+            return [IsCoordinatorOrAdmin()]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return User.objects.none()
+        if getattr(user, 'role', None) == 'VOLUN':
+            return User.objects.filter(pk=user.pk)
+        return User.objects.all()
 
 # View for Skill
 class SkillViewSet(viewsets.ModelViewSet):
@@ -219,7 +242,13 @@ User = get_user_model()
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([AuthRateThrottle])
 def password_reset_request(request):
+    expected_secret = getattr(settings, 'NEXTAUTH_SECRET', '')
+    provided_secret = request.headers.get('X-Internal-Secret', '')
+    if not expected_secret or not secrets.compare_digest(provided_secret, expected_secret):
+        return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+
     email = request.data.get('email')
     try:
         user = User.objects.get(email=email)
@@ -235,10 +264,14 @@ def password_reset_request(request):
     
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([AuthRateThrottle])
 def confirm_password_reset(request):
     uidb64 = request.data.get('uid')
     token = request.data.get('token')
     new_password = request.data.get('password')
+
+    if not uidb64 or not token or not new_password:
+        return Response({'error': 'Missing required fields.'}, status=400)
 
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -247,6 +280,11 @@ def confirm_password_reset(request):
         user = None
 
     if user is not None and default_token_generator.check_token(user, token):
+        try:
+            validate_password(new_password, user=user)
+        except DjangoValidationError as exc:
+            return Response({'error': ' '.join(exc.messages)}, status=400)
+
         user.set_password(new_password)
         user.save()
         return Response({'message': 'Password reset successful.'}, status=200)

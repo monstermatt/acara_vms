@@ -2,8 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UnhidePasswordIcon, HidePasswordIcon } from '@/icons';
-import { signIn, getSession } from 'next-auth/react'; //usesession necessary for role based routing
-
+import { signIn, getSession } from 'next-auth/react';
 
 type LoginView = 'login' | 'forgotpassword' | 'accountsetup'
 
@@ -12,7 +11,6 @@ interface Props {
 }
 
 const Login = ({ setView }: Props) => {
-
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,30 +24,8 @@ const Login = ({ setView }: Props) => {
 
   const submitCredentials = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    setIsPending(true)
-    setInvalidCredentials(false)
 
-    //NextAuth SignIn
-    const result = await signIn('credentials', {
-      redirect: false,
-      email: email,
-      password: password,
-    })
-
-    setIsPending(false)
-
-    if (result?.error) {
-      setInvalidCredentials(true);
-    }else{
-      const session = await getSession();
-      if ((session?.user as any)?.role === "VOLUN") {
-        router.push('/profile');
-    }else {
-      router.push('/dashboard')
-    }
-  }
-
-    // resetting errors
+    // Reset errors and validate inputs before network request
     setInvalidEmail(false)
     setInvalidPassword(false)
     setInvalidCredentials(false)
@@ -59,19 +35,32 @@ const Login = ({ setView }: Props) => {
     if (!password) { setInvalidPassword(true); isInvalid = true }
     if (isInvalid) return
 
-    try {
-              const success = false
+    setIsPending(true)
 
-      if (!success) {
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: email,
+        password: password,
+      })
+
+      if (result?.error || !result?.ok) {
         setInvalidEmail(true)
         setInvalidPassword(true)
         setInvalidCredentials(true)
         return
       }
 
-      router.push('/dashboard')
-    } catch (error) {
+      const session = await getSession()
+      if (session?.user?.role === 'VOLUN') {
+        router.push('/profile')
+      } else {
+        router.push('/dashboard')
+      }
+    } catch {
       setInvalidCredentials(true)
+    } finally {
+      setIsPending(false)
     }
   }
 
